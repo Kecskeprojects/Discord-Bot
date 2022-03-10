@@ -2,7 +2,7 @@
 using Discord.WebSocket;
 using System.Threading.Tasks;
 
-namespace Discord_Bot
+namespace Discord_Bot.Modules.Commands
 {
     class DirectMessageHandler
     {

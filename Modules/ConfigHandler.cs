@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Discord_Bot
+namespace Discord_Bot.Modules
 {
     public class ConfigHandler
     {

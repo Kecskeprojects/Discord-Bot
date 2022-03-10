@@ -1,16 +1,18 @@
-﻿using Discord_Bot.Classes;
+﻿using Discord_Bot.Modules.ListClasses;
 using System;
 using System.Data;
 using System.Data.SQLite;
 
-namespace Discord_Bot.Database
+namespace Discord_Bot.Modules.Database
 {
     class DBManagement
     {
         protected static readonly SQLiteConnection Sqlite_conn = new($"Data Source=database.db; Version = 3; New = True; Compress = True; ");
 
-        public static void Insert(string query)
+        public static int Insert(string query)
         {
+            int affected_rows =  -1;
+
             Sqlite_conn.Open();
 
             try
@@ -20,7 +22,7 @@ namespace Discord_Bot.Database
                 sqlite_cmd = Sqlite_conn.CreateCommand();
 
                 sqlite_cmd.CommandText = query;
-                sqlite_cmd.ExecuteNonQuery();
+                affected_rows = sqlite_cmd.ExecuteNonQuery();
             }
             catch(Exception ex)
             {
@@ -30,10 +32,14 @@ namespace Discord_Bot.Database
             }
 
             Sqlite_conn.Close();
+
+            return affected_rows;
         }
 
-        public static void Update(string query)
+        public static int Update(string query)
         {
+            int affected_rows = -1;
+
             Sqlite_conn.Open();
 
             try
@@ -43,7 +49,7 @@ namespace Discord_Bot.Database
                 sqlite_cmd = Sqlite_conn.CreateCommand();
 
                 sqlite_cmd.CommandText = query;
-                sqlite_cmd.ExecuteNonQuery();
+                affected_rows = sqlite_cmd.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
@@ -53,6 +59,8 @@ namespace Discord_Bot.Database
             }
 
             Sqlite_conn.Close();
+
+            return affected_rows;
         }
 
         public static DataTable Read(string query)
@@ -64,19 +72,14 @@ namespace Discord_Bot.Database
             try
             {
                 SQLiteCommand sqlite_cmd;
-                SQLiteDataReader sqlite_datareader;
+                SQLiteDataReader reader;
 
                 sqlite_cmd = Sqlite_conn.CreateCommand();
 
                 sqlite_cmd.CommandText = query;
 
-                sqlite_datareader = sqlite_cmd.ExecuteReader();
-
-                if (sqlite_datareader.HasRows) 
-                {
-                    results = new DataTable();
-                    results.Load(sqlite_datareader);
-                }
+                results = new();
+                results.Load(reader = sqlite_cmd.ExecuteReader());
             }
             catch (Exception ex)
             {
@@ -90,18 +93,20 @@ namespace Discord_Bot.Database
             return results;
         }
 
-        public static void Delete(string query)
+        public static int Delete(string query)
         {
-            SQLiteCommand sqlite_cmd;
+            int affected_rows = -1;
 
             Sqlite_conn.Open();
 
             try
             {
+                SQLiteCommand sqlite_cmd;
+
                 sqlite_cmd = Sqlite_conn.CreateCommand();
 
                 sqlite_cmd.CommandText = query;
-                sqlite_cmd.ExecuteNonQuery();
+                affected_rows = sqlite_cmd.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
@@ -111,6 +116,8 @@ namespace Discord_Bot.Database
             }
 
             Sqlite_conn.Close();
+
+            return affected_rows;
         }
     }
 }

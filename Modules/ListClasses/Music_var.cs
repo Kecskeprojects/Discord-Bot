@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace Discord_Bot.Classes
+namespace Discord_Bot.Modules.ListClasses
 {
     public class Music_var
     {

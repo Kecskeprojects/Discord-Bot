@@ -43,10 +43,10 @@ INSERT INTO `greeting`(`url`) VALUES
 ('https://cdn.discordapp.com/attachments/891418209843044354/912357027689406474/dreamcatcher-.gif')
 ;
 
-INSERT INTO `keyword`(`trigger`, `response`) VALUES 
-('Baksáné','She who shall not be named!'),
-('Orbán Viktor','Magának V. Iktor excellenciás úr!'),
-('Anyád','Vigyázz kivel beszélsz!')
+INSERT INTO `keyword`(`serverId`,`trigger`, `response`) VALUES 
+('234024379179204608','Baksáné','She who shall not be named!'),
+('234024379179204608','Orbán Viktor','Magának V. Iktor excellenciás úr!'),
+('234024379179204608','Anyád','Vigyázz kivel beszélsz!')
 ;
 
 INSERT INTO `lastfm`(`userId`, `username`) VALUES 

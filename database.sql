@@ -3,6 +3,7 @@ CREATE TABLE `greeting` (
 );
 
 CREATE TABLE `keyword` (
+  `serverId` varchar(20),
   `trigger` varchar(100),
   `response` varchar(200)
 );

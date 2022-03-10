@@ -2,13 +2,14 @@
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
-using Discord_Bot.Classes;
-using Discord_Bot.Database;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Timers;
+using Discord_Bot.Modules;
+using Discord_Bot.Modules.ListClasses;
+using Discord_Bot.Modules.Database;
 
 namespace Discord_Bot
 {
@@ -153,24 +154,11 @@ namespace Discord_Bot
             
             if(minutes_count == 1440) minutes_count = 0;
 
-            if (minutes_count == 0)
-            {
-                try
-                {
-                    File.Copy("database.db", Path.Combine(Directory.GetCurrentDirectory(), $"Assets\\Data\\database_{"" + DateTime.Now.Year + DateTime.Now.Month + DateTime.Now.Day}.db"));
-                    Console.WriteLine("Database backup created!");
-                }
-                catch(Exception ex)
-                {
-                    Console.WriteLine("Something went wrong!\n" + ex.ToString());
-                    Global.Logs.Add(new Log("DEV", ex.Message));
-                    Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Log OnTimedEvent", ex.ToString()));
-                }
-            }
-
-            minutes_count++;
+            if (minutes_count == 0) DatabaseBackup();
 
             Log_to_file();
+
+            minutes_count++;
 
             await Task.CompletedTask;
         }
@@ -197,7 +185,24 @@ namespace Discord_Bot
             {
                 Console.WriteLine("Something went wrong!\n" + ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Log to File", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Log_to_File", ex.ToString()));
+            }
+        }
+
+        //Copy database to Assets\Data folder, done once a day
+        public static void DatabaseBackup()
+        {
+            try
+            {
+                File.Copy("database.db", Path.Combine(Directory.GetCurrentDirectory(), 
+                    $"Assets\\Data\\database_{"" + DateTime.Now.Year + DateTime.Now.Month + DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Minute}.db"));
+                Console.WriteLine("Database backup created!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Something went wrong!\n" + ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Log OnTimedEvent", ex.ToString()));
             }
         }
     }

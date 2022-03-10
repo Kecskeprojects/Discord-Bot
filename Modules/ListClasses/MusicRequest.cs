@@ -1,4 +1,4 @@
-﻿namespace Discord_Bot.Classes
+﻿namespace Discord_Bot.Modules.ListClasses
 {
     public class MusicRequest
     {

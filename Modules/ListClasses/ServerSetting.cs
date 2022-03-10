@@ -1,4 +1,4 @@
-﻿namespace Discord_Bot.Classes
+﻿namespace Discord_Bot.Modules.ListClasses
 {
     public class ServerSetting
     {
@@ -7,8 +7,8 @@
         public ulong RoleChannel { get; set; }
         public string TChannelId { get; set; }
         public string TChannelLink { get; set; }
-        public ulong TNotifChannelId { get; set; }
-        public ulong TNotifRoleId { get; set; }
+        public ulong TNotifChannel { get; set; }
+        public ulong TNotifRole { get; set; }
 
         public ServerSetting() { }
 
@@ -19,8 +19,8 @@
             RoleChannel = 0;
             TChannelId = "";
             TChannelLink = "";
-            TNotifChannelId = 0;
-            TNotifRoleId = 0;
+            TNotifChannel = 0;
+            TNotifRole = 0;
         }
 
         public ServerSetting(System.Data.DataRow row)
@@ -32,8 +32,8 @@
                 RoleChannel = ulong.Parse(row[2].ToString());
                 TChannelId = row[3].ToString();
                 TChannelLink = row[4].ToString();
-                TNotifChannelId = ulong.Parse(row[5].ToString());
-                TNotifRoleId = ulong.Parse(row[6].ToString());
+                TNotifChannel = ulong.Parse(row[5].ToString());
+                TNotifRole = ulong.Parse(row[6].ToString());
             }
         }
     }

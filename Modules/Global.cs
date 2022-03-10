@@ -1,17 +1,14 @@
-﻿using Discord_Bot.Classes;
+﻿using Discord_Bot.Modules.ListClasses;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Discord_Bot
+namespace Discord_Bot.Modules
 {
     public class Global
     {
         public static readonly List<Log> Logs = new();
 
-        public static readonly List<ServerSetting> servers = new();
+        public static readonly Dictionary<ulong, ServerSetting> servers = new();
 
 
 

@@ -6,10 +6,11 @@ using System.Timers;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Discord_Bot.Database;
-using Discord_Bot.Classes;
+using Discord_Bot.Modules;
+using Discord_Bot.Modules.Commands;
+using Discord_Bot.Modules.Database;
+using Discord_Bot.Modules.ListClasses;
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
 
 namespace Discord_Bot
 {
@@ -158,13 +159,22 @@ namespace Discord_Bot
 
 
             //If the server is not on the list, add it to the database and the list
-            if (!Global.servers.Any(x => x.ServerId == context.Guild.Id))
+            if (!Global.servers.ContainsKey(context.Guild.Id))
             {
-                DBManagement.Insert($"INSERT INTO `serversetting`(`serverId`, `musicChannel`, `roleChannel`, `tNotifChannel`, `tNotifRole`) VALUES ('{context.Guild.Id}',0,0,0,0)");
-                Global.servers.Add(new ServerSetting(context.Guild.Id));
+                int affected = DBManagement.Insert($"INSERT INTO `serversetting`(`serverId`, `musicChannel`, `roleChannel`, `tNotifChannel`, `tNotifRole`) VALUES ('{context.Guild.Id}',0,0,0,0)");
 
-                Console.WriteLine($"{context.Guild.Name} added to the server list!");
-                Global.Logs.Add(new Log("LOG", $"{context.Guild.Name} added to the server list!"));
+                if(affected > 0)
+                {
+                    Global.servers.Add(context.Guild.Id, new ServerSetting(context.Guild.Id));
+
+                    Console.WriteLine($"{context.Guild.Name} added to the server list!");
+                    Global.Logs.Add(new Log("LOG", $"{context.Guild.Name} added to the server list!"));
+                }
+                else
+                {
+                    Console.WriteLine($"{context.Guild.Name} could not be added to list!");
+                    Global.Logs.Add(new Log("LOG", $"{context.Guild.Name} could not be added to list!"));
+                }
             }
 
 
@@ -211,26 +221,5 @@ namespace Discord_Bot
         /*if (server != -1 && (Global.Server_settings[server].music_channel == context.Channel.Id 
          * || Global.Server_settings[server].music_channel == 0)) Global.Is_music_channel = true;
         else Global.Is_music_channel = false;*/
-
-
-        /*public static ServerSetting Which_server(SocketCommandContext context) 
-        //Which server the command came from
-        {
-            try
-            {
-                var table = Management.Read($"SELECT * in `serversetting` WHERE `serverId` = {context.Guild.Id}");
-                if(table != null)
-                {
-                    return new ServerSetting(table);
-                }
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine("Something went wrong!\n" + ex.ToString());
-                Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Log to File", ex.ToString()));
-            }
-            return null;
-        }*/
     }
 }

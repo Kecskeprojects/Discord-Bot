@@ -1,5 +1,6 @@
-﻿using Discord_Bot.Classes;
-using Discord_Bot.Database;
+﻿using Discord_Bot.Modules;
+using Discord_Bot.Modules.ListClasses;
+using Discord_Bot.Modules.Database;
 using System;
 using System.Data;
 using System.Data.SQLite;
@@ -46,13 +47,13 @@ namespace Discord_Bot
         //A list of the current servers
         public static void ServerList()
         {
-            var table = DBManagement.Read($"SELECT * FROM `serversetting`");
+            var table = Read($"SELECT * FROM `serversetting`");
 
             if (table != null)
             {
-                foreach (System.Data.DataRow server in table.Rows)
+                foreach (DataRow server in table.Rows)
                 {
-                    Global.servers.Add(new ServerSetting(server));
+                    Global.servers.Add(ulong.Parse(server[0].ToString()), new ServerSetting(server));
                 }
             }
         }
