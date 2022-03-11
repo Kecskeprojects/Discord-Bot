@@ -13,8 +13,6 @@ namespace Discord_Bot.Modules.Database
         {
             int affected_rows =  -1;
 
-            Sqlite_conn.Open();
-
             try
             {
                 SQLiteCommand sqlite_cmd;
@@ -31,16 +29,12 @@ namespace Discord_Bot.Modules.Database
                 Global.Logs.Add(new Log("ERROR", "Management.cs Insert", ex.ToString()));
             }
 
-            Sqlite_conn.Close();
-
             return affected_rows;
         }
 
         public static int Update(string query)
         {
             int affected_rows = -1;
-
-            Sqlite_conn.Open();
 
             try
             {
@@ -58,16 +52,12 @@ namespace Discord_Bot.Modules.Database
                 Global.Logs.Add(new Log("ERROR", "Management.cs Update", ex.ToString()));
             }
 
-            Sqlite_conn.Close();
-
             return affected_rows;
         }
 
         public static DataTable Read(string query)
         {
-            DataTable results = null;
-
-            Sqlite_conn.Open();
+            DataTable results = new();
 
             try
             {
@@ -78,7 +68,6 @@ namespace Discord_Bot.Modules.Database
 
                 sqlite_cmd.CommandText = query;
 
-                results = new();
                 results.Load(reader = sqlite_cmd.ExecuteReader());
             }
             catch (Exception ex)
@@ -87,8 +76,6 @@ namespace Discord_Bot.Modules.Database
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Management.cs Read", ex.ToString()));
             }
-            
-            Sqlite_conn.Close();
 
             return results;
         }
@@ -96,8 +83,6 @@ namespace Discord_Bot.Modules.Database
         public static int Delete(string query)
         {
             int affected_rows = -1;
-
-            Sqlite_conn.Open();
 
             try
             {
@@ -115,9 +100,18 @@ namespace Discord_Bot.Modules.Database
                 Global.Logs.Add(new Log("ERROR", "Management.cs Delete", ex.ToString()));
             }
 
-            Sqlite_conn.Close();
-
             return affected_rows;
+        }
+
+        public static void OpenConnection(object sender, StateChangeEventArgs e)
+        {
+            if (Sqlite_conn.State == ConnectionState.Closed)
+            {
+                Sqlite_conn.Open();
+
+                Console.WriteLine("Database connection had to be reopened!");
+                Global.Logs.Add(new Log("LOG", "Database connection had to be reopened!"));
+            }
         }
     }
 }

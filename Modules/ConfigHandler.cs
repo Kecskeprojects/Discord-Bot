@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Discord_Bot.Modules.ListClasses;
+using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -41,10 +42,9 @@ namespace Discord_Bot.Modules
             {
                 using (StreamWriter sw = File.AppendText(configPath)) sw.WriteLine(JsonConvert.SerializeObject(conf));
 
-                Console.WriteLine("WARNING! New Config initialized! Need to fill in values before running commands!");
-                //Global.Logs.Add(new Log("WARNING", "WARNING! New Config initialized! Need to fill in values before running commands!"));
+                Console.WriteLine("New Config initialized! Need to fill in values before running commands!");
+                Global.Logs.Add(new Log("LOG", "New Config initialized! Need to fill in values before running commands!"));
 
-                //Program_Functions.Log_to_file();
                 throw new Exception("NO CONFIG AVAILABLE! Go to executable path and fill out newly created file!");
             }
 

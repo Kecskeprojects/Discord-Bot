@@ -5,11 +5,32 @@ using System;
 using System.Data;
 using System.Data.SQLite;
 using System.IO;
+using System.Timers;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace Discord_Bot
 {
-    internal class StartupFunctions :DBManagement
+    internal class StartupFunctions : DBManagement
     {
+        //Testing connection by pinging google
+        public static bool Connection()
+        {
+            try
+            {
+                if (new System.Net.NetworkInformation.Ping()
+                    .Send("google.com", 1000, new byte[32], new System.Net.NetworkInformation.PingOptions()).Status ==
+                    System.Net.NetworkInformation.IPStatus.Success)
+                {
+                    return true;
+                }
+            }
+            catch (Exception) { }
+            return false;
+        }
+
+
+
         //Check if folders for long term storage exist
         public static void Check_Folders()
         {
@@ -49,7 +70,7 @@ namespace Discord_Bot
         {
             var table = Read($"SELECT * FROM `serversetting`");
 
-            if (table != null)
+            if (table.Rows.Count > 0)
             {
                 foreach (DataRow server in table.Rows)
                 {
@@ -66,10 +87,12 @@ namespace Discord_Bot
         {
             try
             {
+                Sqlite_conn.Open();
+
+                Sqlite_conn.StateChange += new StateChangeEventHandler(OpenConnection);
+
                 if (!File.Exists("database.db"))
                 {
-                    Sqlite_conn.Open();
-
                     SQLiteCommand sqlite_cmd;
 
                     sqlite_cmd = Sqlite_conn.CreateCommand();
@@ -90,8 +113,78 @@ namespace Discord_Bot
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Management.cs Startup", ex.ToString()));
             }
+        }
 
-            if (Sqlite_conn.State == ConnectionState.Open) Sqlite_conn.Close();
+
+
+        //What the bot does every minute
+        static int minutes_count = 0;
+        public static async void OnTimedEvent(object source, ElapsedEventArgs e)
+        {
+            if (minutes_count == 1440) minutes_count = 0;
+
+            if (minutes_count == 0) DatabaseBackup();
+
+            Log_to_file();
+
+            minutes_count++;
+
+            await Task.CompletedTask;
+        }
+
+
+
+        //Things to do when app is closing
+        //3 second time limit to event by default
+        public static void Closing(object sender, EventArgs e)
+        {
+            Global.Logs.Add(new Log("LOG", "Application closing!"));
+            Log_to_file();
+        }
+
+
+
+        //For logging messages, errors, and messages to log files
+        static StreamWriter LogFile_writer = null;
+        public static void Log_to_file()
+        {
+            try
+            {
+                if (Global.Logs.Count != 0 && LogFile_writer == null)
+                {
+                    string file_location = "Logs\\logs" + "[" + DateTime.Now.Year + "-" + (DateTime.Now.Month < 10 ? "0" + DateTime.Now.Month.ToString() : DateTime.Now.Month.ToString()) + "-" + (DateTime.Now.Day < 10 ? "0" + DateTime.Now.Day.ToString() : DateTime.Now.Day.ToString()) + "].txt";
+
+                    using (LogFile_writer = File.AppendText(file_location)) foreach (string log in Global.Logs.Select(n => n.Content)) LogFile_writer.WriteLine(log);
+
+                    LogFile_writer = null;
+                    Global.Logs.Clear();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Something went wrong!\n" + ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Log_to_File", ex.ToString()));
+            }
+        }
+
+
+
+        //Copy database to Assets\Data folder, done once a day
+        public static void DatabaseBackup()
+        {
+            try
+            {
+                File.Copy("database.db", Path.Combine(Directory.GetCurrentDirectory(),
+                    $"Assets\\Data\\database_{"" + DateTime.Now.Year + DateTime.Now.Month + DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Minute}.db"));
+                Console.WriteLine("Database backup created!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Something went wrong!\n" + ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Log OnTimedEvent", ex.ToString()));
+            }
         }
     }
 }

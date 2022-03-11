@@ -47,7 +47,7 @@ namespace Discord_Bot.Modules.Commands
                 //Check if a command with such a name already exists
                 var table = DBManagement.Read($"SELECT `command` FROM `customcommand` WHERE `command` = '{name}' AND `serverId` = '{Context.Guild.Id}'");
 
-                if (table != null && table.Rows.Count == 0)
+                if (table.Rows.Count == 0)
                 {
                     //Check if the url is a valid url, not just a string of characters
                     if (Uri.IsWellFormedUriString(link, UriKind.Absolute))
@@ -211,7 +211,7 @@ namespace Discord_Bot.Modules.Commands
 
                 if (role != null)
                 {
-                    if (table != null && table.Rows.Count == 0)
+                    if (table.Rows.Count == 0)
                     {
                         //Add role to database
                         int affected = DBManagement.Insert($"INSERT INTO `role`(`serverId`, `roleName`, `roleId`) VALUES ('{Context.Guild.Id}','{role.Name}','{role.Id}')");
@@ -269,10 +269,11 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
+                Console.WriteLine(keyword_response);
                 string[] array = keyword_response[1..^1].Split("` `");
-                var table = DBManagement.Read($"SELECT `command` FROM `keyword` WHERE `trigger` = '{array[0]}' AND `serverId` = '{Context.Guild.Id}'");
+                var table = DBManagement.Read($"SELECT `trigger` FROM `keyword` WHERE `trigger` = '{array[0]}' AND `serverId` = '{Context.Guild.Id}'");
 
-                if(table != null && table.Rows.Count == 0)
+                if(table.Rows.Count == 0)
                 {
                     int affected = DBManagement.Insert($"INSERT INTO `keyword` (`serverId`,`trigger`, `response`) VALUES ('{Context.Guild.Id}','{array[0]}','{array[1]}');");
                     if (affected > 0) await ReplyAsync("Keyword added to database!");
@@ -297,7 +298,7 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                int affected = DBManagement.Insert($"REMOVE FROM `keyword` WHERE `serverId` = '{Context.Guild.Id}' AND `trigger` = '{keyword}';");
+                int affected = DBManagement.Insert($"DELETE FROM `keyword` WHERE `serverId` = '{Context.Guild.Id}' AND `trigger` = '{keyword}';");
                 if (affected > 0) await ReplyAsync("Keyword removed from database!");
                 else await ReplyAsync("Keyword could not be removed from database!");
             }

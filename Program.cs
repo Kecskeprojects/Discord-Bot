@@ -19,8 +19,11 @@ namespace Discord_Bot
         //The main program, runs even if the bot crashes, and restarts it
         static void Main()
         {
+            AppDomain.CurrentDomain.ProcessExit += new EventHandler(StartupFunctions.Closing);
+
             System.Timers.Timer aTimer = new(60000) { AutoReset = true }; //1 minute
-            aTimer.Elapsed += new ElapsedEventHandler(ProgramFunctions.OnTimedEvent);
+
+            aTimer.Elapsed += new ElapsedEventHandler(StartupFunctions.OnTimedEvent);
 
             while (true)
             {
@@ -152,7 +155,7 @@ namespace Discord_Bot
 
 
             //Check if the message is an embed or not
-            if (message.Content.Length < 1) { Global.Logs.Add(new Log("MES_USER", "Embedded message")); return; }
+            if (message.Content.Length < 1) return;
             else Global.Logs.Add(new Log("MES_USER", message.Content));
 
             if (context.Guild == null) { await DirectMessageHandler.Handle(context); return; }
@@ -173,7 +176,7 @@ namespace Discord_Bot
                 else
                 {
                     Console.WriteLine($"{context.Guild.Name} could not be added to list!");
-                    Global.Logs.Add(new Log("LOG", $"{context.Guild.Name} could not be added to list!"));
+                    Global.Logs.Add(new Log("ERROR", $"{context.Guild.Name} could not be added to list!"));
                 }
             }
 
@@ -185,7 +188,10 @@ namespace Discord_Bot
                 //In case there is no such hard coded command, check the list of custom commands
                 if (!result.IsSuccess)
                 {
-                    if (await ProgramFunctions.Custom_Commands(context)) return;
+                    if (result.ErrorReason == "Unknown command.") 
+                    {
+                        if (await ProgramFunctions.Custom_Commands(context)) return;
+                    }
 
                     Console.WriteLine(result.ErrorReason);
                     if (result.Error.Equals(CommandError.UnmetPrecondition)) await message.Channel.SendMessageAsync(result.ErrorReason);
@@ -193,10 +199,11 @@ namespace Discord_Bot
                     Global.Logs.Add(new Log("ERROR", "Program.cs HandleCommandAsync", result.Error.ToString()));
                 }
             }
-            else if(message.HasCharPrefix('+', ref argPos) || message.HasCharPrefix('-', ref argPos))
+            else if(Global.servers[context.Guild.Id].RoleChannel == context.Channel.Id)
             {
-                var table = DBManagement.Read($"SELECT `roleChannel` FROM `serversetting` WHERE `serverId` = '{context.Channel.Id}'");
-                if(table != null)
+                await context.Message.DeleteAsync();
+
+                if(message.HasCharPrefix('+', ref argPos) || message.HasCharPrefix('-', ref argPos))
                 {
                     //self roles
                     await ProgramFunctions.Self_role(context);
@@ -204,12 +211,18 @@ namespace Discord_Bot
             }
             else
             {
-                //Responses to triggers
-                if (!await ProgramFunctions.Feature_Check(message) && (message.Content.Contains(_client.CurrentUser.Mention) || message.Content.Contains(_client.CurrentUser.Mention.Remove(2, 1))))
+                //Response to mention
+                if (message.Content.Contains(_client.CurrentUser.Mention) || message.Content.Contains(_client.CurrentUser.Mention.Remove(2, 1)))
                 {
                     var table = DBManagement.Read("SELECT * FROM `greeting`");
-                    await message.Channel.SendMessageAsync(table.Rows[new Random().Next(0, table.Rows.Count)][0].ToString());
+                    if (table.Rows.Count > 0)
+                    {
+                        await message.Channel.SendMessageAsync(table.Rows[new Random().Next(0, table.Rows.Count)][0].ToString());
+                    }
                 }
+                //Responses to triggers
+                else _ = ProgramFunctions.Feature_Check(message);
+                
             }
 
             await Task.CompletedTask;
