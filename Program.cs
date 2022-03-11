@@ -27,7 +27,7 @@ namespace Discord_Bot
 
             while (true)
             {
-                if (ProgramFunctions.Connection())
+                if (StartupFunctions.Connection())
                 {
                     aTimer.Start();
 

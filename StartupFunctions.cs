@@ -87,12 +87,10 @@ namespace Discord_Bot
         {
             try
             {
-                Sqlite_conn.Open();
-
-                Sqlite_conn.StateChange += new StateChangeEventHandler(OpenConnection);
-
                 if (!File.Exists("database.db"))
                 {
+                    Sqlite_conn.Open();
+
                     SQLiteCommand sqlite_cmd;
 
                     sqlite_cmd = Sqlite_conn.CreateCommand();
@@ -102,7 +100,13 @@ namespace Discord_Bot
 
                     sqlite_cmd.CommandText = File.ReadAllText("database insert.sql");
                     sqlite_cmd.ExecuteNonQuery();
+
+                    Sqlite_conn.Close();
                 }
+
+                Sqlite_conn.Open();
+
+                Sqlite_conn.StateChange += new StateChangeEventHandler(OpenConnection);
 
                 Console.WriteLine("Database integrity checked!");
                 Global.Logs.Add(new Log("LOG", "Database integrity checked!"));
