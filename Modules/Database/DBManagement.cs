@@ -5,11 +5,11 @@ using System.Data.SQLite;
 
 namespace Discord_Bot.Modules.Database
 {
-    class DBManagement
+    public class DBManagement
     {
         protected static readonly SQLiteConnection Sqlite_conn = new($"Data Source=database.db; Version = 3; New = True; Compress = True; ");
 
-        public static int Insert(string query)
+        protected static int Insert(string query)
         {
             int affected_rows =  -1;
 
@@ -24,7 +24,7 @@ namespace Discord_Bot.Modules.Database
             }
             catch(Exception ex)
             {
-                Console.WriteLine("Something went wrong!\n" + ex.ToString());
+                Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Management.cs Insert", ex.ToString()));
             }
@@ -32,7 +32,7 @@ namespace Discord_Bot.Modules.Database
             return affected_rows;
         }
 
-        public static int Update(string query)
+        protected static int Update(string query)
         {
             int affected_rows = -1;
 
@@ -47,7 +47,7 @@ namespace Discord_Bot.Modules.Database
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Something went wrong!\n" + ex.ToString());
+                Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Management.cs Update", ex.ToString()));
             }
@@ -55,7 +55,7 @@ namespace Discord_Bot.Modules.Database
             return affected_rows;
         }
 
-        public static DataTable Read(string query)
+        protected static DataTable Read(string query)
         {
             DataTable results = new();
 
@@ -72,7 +72,7 @@ namespace Discord_Bot.Modules.Database
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Something went wrong!\n" + ex.ToString());
+                Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Management.cs Read", ex.ToString()));
             }
@@ -80,7 +80,7 @@ namespace Discord_Bot.Modules.Database
             return results;
         }
 
-        public static int Delete(string query)
+        protected static int Delete(string query)
         {
             int affected_rows = -1;
 
@@ -95,7 +95,7 @@ namespace Discord_Bot.Modules.Database
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Something went wrong!\n" + ex.ToString());
+                Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Management.cs Delete", ex.ToString()));
             }
@@ -103,7 +103,7 @@ namespace Discord_Bot.Modules.Database
             return affected_rows;
         }
 
-        public static void OpenConnection(object sender, StateChangeEventArgs e)
+        protected static void OpenConnection(object sender, StateChangeEventArgs e)
         {
             if (Sqlite_conn.State == ConnectionState.Closed)
             {

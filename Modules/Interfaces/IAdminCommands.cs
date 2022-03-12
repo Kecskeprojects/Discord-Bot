@@ -57,8 +57,18 @@ namespace Discord_Bot.Modules.Interfaces
 
 
         [Command("say")]
-        [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireOwner]
         public Task Say(IMessageChannel channel, [Remainder] string text);
+
+
+        [Command("greeting add")]
+        [RequireOwner]
+        public Task GreetingAdd(string url);
+
+
+        [Command("greeting remove")]
+        [RequireOwner]
+        public Task GreetingRemove(int id);
 
 
         [Command("ping")]

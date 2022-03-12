@@ -11,33 +11,6 @@ namespace Jiubot
     class Command_Functions
     {
         /*
-        //Read Commands.txt for !help bot command
-        public static Dictionary<string, string> Commands_Read(bool check_file)
-        {
-            Dictionary<string, string> commands = new Dictionary<string, string>();
-
-            if (check_file == true)
-            {
-                if (!File.Exists("Assets\\Commands\\Commands.txt")) return null;
-                else commands.Add("test", "element"); return commands;
-            }
-
-            using (StreamReader reader = new StreamReader("Assets\\Commands\\Commands.txt"))
-            {
-                string curr = "";
-                while (!reader.EndOfStream)
-                {
-                    string line = reader.ReadLine();
-                    if (line == "") { continue; }
-                    if (line.StartsWith("!")) { commands[curr] += "`" + line.Split('\t')[0] + " ` " + line.Split('\t')[1] + "\n"; }
-                    else if (line.StartsWith("*")) { commands[curr] += line + "\n"; }
-                    else { commands.Add(line, ""); curr = line; }
-                }
-            };
-
-            return commands;
-        }
-
         //Embed making for song request in voice chat
         public static async Task Request_Embed(SocketCommandContext Context, string[] temp)
         {

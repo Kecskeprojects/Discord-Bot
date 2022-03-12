@@ -116,7 +116,7 @@ namespace Discord_Bot
                     }
                     default:
                     {
-                            Console.WriteLine("Something went wrong!\n" + arg.Exception);
+                            Console.WriteLine(arg.Exception);
                             Global.Logs.Add(new Log("DEV", arg.Exception.Message));
                             Global.Logs.Add(new Log("ERROR", "Program.cs Client_Log", arg.ToString()));
                             break;
@@ -164,7 +164,7 @@ namespace Discord_Bot
             //If the server is not on the list, add it to the database and the list
             if (!Global.servers.ContainsKey(context.Guild.Id))
             {
-                int affected = DBManagement.Insert($"INSERT INTO `serversetting`(`serverId`, `musicChannel`, `roleChannel`, `tNotifChannel`, `tNotifRole`) VALUES ('{context.Guild.Id}',0,0,0,0)");
+                int affected = DBFunctions.AddNewServer(context.Guild.Id);
 
                 if(affected > 0)
                 {
@@ -214,14 +214,14 @@ namespace Discord_Bot
                 //Response to mention
                 if (message.Content.Contains(_client.CurrentUser.Mention) || message.Content.Contains(_client.CurrentUser.Mention.Remove(2, 1)))
                 {
-                    var table = DBManagement.Read("SELECT * FROM `greeting`");
+                    var table = DBFunctions.AllGreeting();
                     if (table.Rows.Count > 0)
                     {
                         await message.Channel.SendMessageAsync(table.Rows[new Random().Next(0, table.Rows.Count)][0].ToString());
                     }
                 }
                 //Responses to triggers
-                else _ = ProgramFunctions.Feature_Check(message);
+                else _ = ProgramFunctions.Feature_Check(context);
                 
             }
 

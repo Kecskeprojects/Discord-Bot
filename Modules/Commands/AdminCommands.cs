@@ -31,7 +31,7 @@ namespace Discord_Bot.Modules.Commands
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Admin_Commands.cs Help", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs Help", ex.ToString()));
             }
         }
 
@@ -45,17 +45,16 @@ namespace Discord_Bot.Modules.Commands
             try
             {
                 //Check if a command with such a name already exists
-                var table = DBManagement.Read($"SELECT `command` FROM `customcommand` WHERE `command` = '{name}' AND `serverId` = '{Context.Guild.Id}'");
-
-                if (table.Rows.Count == 0)
+                if (DBFunctions.CustomCommandGet(Context.Guild.Id, name) == null)
                 {
                     //Check if the url is a valid url, not just a string of characters
                     if (Uri.IsWellFormedUriString(link, UriKind.Absolute))
                     {
                         //Add command to database
-                        int affected = DBManagement.Insert($"INSERT INTO `customcommand`(`serverId`, `command`, `url`) VALUES ('{Context.Guild.Id}','{name}','{link}')");
-
-                        if (affected > 0) await ReplyAsync($"New command successfully added: {name}");
+                        if (DBFunctions.CustomCommandAdd(Context.Guild.Id, name, link) > 0)
+                        {
+                            await ReplyAsync($"New command successfully added: {name}");
+                        }
                         else await ReplyAsync("Command could not be added!");
                     }
                     else await ReplyAsync("That link is invalid!");
@@ -66,7 +65,7 @@ namespace Discord_Bot.Modules.Commands
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Admin_Commands.cs CommandAdd", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs CommandAdd", ex.ToString()));
             }
         }
 
@@ -79,16 +78,18 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                int affected = DBManagement.Delete($"DELETE FROM `customcommand` WHERE `command` = '{name}' AND `serverId` = '{Context.Guild.Id}'");
-
-                if (affected > 0) await ReplyAsync($"The {name} command has been removed.");
+                //Remove command from database
+                if (DBFunctions.CustomCommandRemove(Context.Guild.Id, name) > 0) 
+                { 
+                    await ReplyAsync($"The {name} command has been removed."); 
+                }
                 else await ReplyAsync("Command does not exist.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Admin_Commands.cs CommandRemove", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs CommandRemove", ex.ToString()));
             }
         }
 
@@ -109,27 +110,28 @@ namespace Discord_Bot.Modules.Commands
                     int affected = -1;
                     switch (type)
                     {
+                        //Check which kind of setting you are modifying, and then add it to database
                         case "music":
                             {
-                                affected = DBManagement.Insert($"UPDATE `serversetting` SET `musicChannel` = '{channel.Id}'");
+                                affected = DBFunctions.ServerSettingUpdate("musicChannel", channel.Id);
                                 if (affected > 0) Global.servers[Context.Guild.Id].MusicChannel = channel.Id;
                                 break;
                             }
                         case "role":
                             {
-                                affected = DBManagement.Insert($"UPDATE `serversetting` SET `roleChannel` = '{channel.Id}'");
+                                affected = DBFunctions.ServerSettingUpdate("roleChannel", channel.Id);
                                 if (affected > 0) Global.servers[Context.Guild.Id].RoleChannel = channel.Id;
                                 break;
                             }
                         case "notif":
                             {
-                                affected = DBManagement.Insert($"UPDATE `serversetting` SET `tNotifChannel` = '{channel.Id}'");
+                                affected = DBFunctions.ServerSettingUpdate("tNotifChannel", channel.Id);
                                 if (affected > 0) Global.servers[Context.Guild.Id].TNotifChannel = channel.Id;
                                 break;
                             }
                         case "notifrole":
                             {
-                                affected = DBManagement.Insert($"UPDATE `serversetting` SET `tNotifRole` = '{role.Id}'");
+                                affected = DBFunctions.ServerSettingUpdate("tNotifRole", channel.Id);
                                 if (affected > 0) Global.servers[Context.Guild.Id].TNotifRole = role.Id;
                                 break;
                             }
@@ -144,7 +146,7 @@ namespace Discord_Bot.Modules.Commands
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Admin_Commands.cs SettingSet", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs SettingSet", ex.ToString()));
             }
         }
 
@@ -160,27 +162,28 @@ namespace Discord_Bot.Modules.Commands
                 int affected = -1;
                 switch (type)
                 {
+                    //Check which kind of setting you are modifying, and then remove it from database
                     case "music":
                         {
-                            affected = DBManagement.Insert($"UPDATE `serversetting` SET `musicChannel` = '0'");
+                            affected = DBFunctions.ServerSettingUpdate("musicChannel", 0);
                             if (affected > 0) Global.servers[Context.Guild.Id].MusicChannel = 0;
                             break;
                         }
                     case "role":
                         {
-                            affected = DBManagement.Insert($"UPDATE `serversetting` SET `roleChannel` = '0'");
+                            affected = DBFunctions.ServerSettingUpdate("roleChannel", 0);
                             if (affected > 0) Global.servers[Context.Guild.Id].RoleChannel = 0;
                             break;
                         }
                     case "notif":
                         {
-                            affected = DBManagement.Insert($"UPDATE `serversetting` SET `tNotifChannel` = '0'");
+                            affected = DBFunctions.ServerSettingUpdate("tNotifChannel", 0);
                             if (affected > 0) Global.servers[Context.Guild.Id].TNotifChannel = 0;
                             break;
                         }
                     case "notifrole":
                         {
-                            affected = DBManagement.Insert($"UPDATE `serversetting` SET `tNotifRole` = '0'");
+                            affected = DBFunctions.ServerSettingUpdate("tNotifRole", 0);
                             if (affected > 0) Global.servers[Context.Guild.Id].TNotifRole = 0;
                             break;
                         }
@@ -193,7 +196,7 @@ namespace Discord_Bot.Modules.Commands
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Admin_Commands.cs SettingUnset", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs SettingUnset", ex.ToString()));
             }
         }
 
@@ -206,17 +209,19 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                IRole role = Context.Guild.Roles.Where(x => x.Name.ToLower() == name).FirstOrDefault();
-                var table = DBManagement.Read($"SELECT `command` FROM `customcommand` WHERE `command` = '{name}' AND `serverId` = '{Context.Guild.Id}'");
+                //Check if role with that name exists
+                IRole role = Context.Guild.Roles.Where(x => x.Name.ToLower() == name.ToLower()).FirstOrDefault();
 
                 if (role != null)
                 {
-                    if (table.Rows.Count == 0)
+                    //Check if role already exists in database
+                    if (DBFunctions.SelfRoleGet(Context.Guild.Id, name) == null)
                     {
                         //Add role to database
-                        int affected = DBManagement.Insert($"INSERT INTO `role`(`serverId`, `roleName`, `roleId`) VALUES ('{Context.Guild.Id}','{role.Name}','{role.Id}')");
-
-                        if (affected > 0) await ReplyAsync($"New role successfully added: {role.Name}");
+                        if (DBFunctions.SelfRoleAdd(Context.Guild.Id, role.Name, role.Id) > 0) 
+                        { 
+                            await ReplyAsync($"New role successfully added: {role.Name}"); 
+                        }
                         else await ReplyAsync("Role could not be added!");
                     }
                     else await ReplyAsync("Role already in database!");
@@ -227,7 +232,7 @@ namespace Discord_Bot.Modules.Commands
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Admin_Commands.cs SelfRoleAdd", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs SelfRoleAdd", ex.ToString()));
             }
         }
 
@@ -245,10 +250,10 @@ namespace Discord_Bot.Modules.Commands
 
                 if(role != null)
                 {
-                    //Remove role from database
-                    int affected = DBManagement.Delete($"DELETE FROM `customcommand` WHERE `command` = '{role.Name}' AND `serverId` = '{Context.Guild.Id}'");
-
-                    if (affected > 0) await ReplyAsync($"The {role.Name} role has been removed.");
+                    if (DBFunctions.SelfRoleRemove(Context.Guild.Id, role.Id) > 0) 
+                    { 
+                        await ReplyAsync($"The {role.Name} role has been removed."); 
+                    }
                     else await ReplyAsync("Role does not exist.");
                 }
             }
@@ -256,7 +261,7 @@ namespace Discord_Bot.Modules.Commands
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Admin_Commands.cs SelfRoleRemove", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs SelfRoleRemove", ex.ToString()));
             }
         }
 
@@ -269,14 +274,16 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                Console.WriteLine(keyword_response);
                 string[] array = keyword_response[1..^1].Split("` `");
-                var table = DBManagement.Read($"SELECT `trigger` FROM `keyword` WHERE `trigger` = '{array[0]}' AND `serverId` = '{Context.Guild.Id}'");
+                var row = DBFunctions.KeywordGet(Context.Guild.Id, array[0]);
 
-                if(table.Rows.Count == 0)
+                if(row != null)
                 {
-                    int affected = DBManagement.Insert($"INSERT INTO `keyword` (`serverId`,`trigger`, `response`) VALUES ('{Context.Guild.Id}','{array[0]}','{array[1]}');");
-                    if (affected > 0) await ReplyAsync("Keyword added to database!");
+                    //Add keyword to database
+                    if (DBFunctions.KeywordAdd(Context.Guild.Id, array[0], array[1]) > 0) 
+                    { 
+                        await ReplyAsync("Keyword added to database!"); 
+                    }
                     else await ReplyAsync("Keyword could not be added to database!");
                 }
                 else await ReplyAsync("Keyword already in database!");
@@ -285,7 +292,7 @@ namespace Discord_Bot.Modules.Commands
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Admin_Commands.cs KeywordAdd", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs KeywordAdd", ex.ToString()));
             }
         }
 
@@ -298,15 +305,18 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                int affected = DBManagement.Insert($"DELETE FROM `keyword` WHERE `serverId` = '{Context.Guild.Id}' AND `trigger` = '{keyword}';");
-                if (affected > 0) await ReplyAsync("Keyword removed from database!");
+                //Remove keyword from database
+                if (DBFunctions.KeywordRemove(Context.Guild.Id, keyword) > 0) 
+                { 
+                    await ReplyAsync("Keyword removed from database!"); 
+                }
                 else await ReplyAsync("Keyword could not be removed from database!");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Admin_Commands.cs KeywordRemove", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs KeywordRemove", ex.ToString()));
             }
         }
 
@@ -319,38 +329,86 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-            ServerSetting server = Global.servers[Context.Guild.Id];
-            ulong[] ids = { server.MusicChannel, server.RoleChannel, server.TNotifChannel, server.TNotifRole };
-            string[] ch_names = { "none", "none", "none", "none" };
+                ServerSetting server = Global.servers[Context.Guild.Id];
+                ulong[] ids = { server.MusicChannel, server.RoleChannel, server.TNotifChannel, server.TNotifRole };
+                string[] ch_names = { "none", "none", "none", "none" };
 
-            for (int i = 0; i < 3; i++)
-            {
-                var item = Context.Guild.TextChannels.Where(n => n.Id == ids[i]).FirstOrDefault();
-                if (item != null) ch_names[i] = item.Name;
-            }
+                for (int i = 0; i < 3; i++)
+                {
+                    var item = Context.Guild.TextChannels.Where(n => n.Id == ids[i]).FirstOrDefault();
+                    if (item != null) ch_names[i] = item.Name;
+                }
 
-            if(ids[3] != 0) ch_names[3] = (Context.Channel as IGuildChannel).Guild.GetRole(ids[3]).Name;
+                if (ids[3] != 0) ch_names[3] = (Context.Channel as IGuildChannel).Guild.GetRole(ids[3]).Name;
 
 
-            EmbedBuilder embed = new();
+                EmbedBuilder embed = new();
 
-            embed.WithTitle("The server's settings are the following:");
-            embed.AddField("Music channel:", $"`{ ch_names[0]}`");
-            embed.AddField("Role channel:", $"`{ ch_names[1]}`");
-            embed.AddField("Notification channel:", $"`{ ch_names[2]}`");
-            embed.AddField("Notification role:", $"`{ ch_names[3]}`");
+                embed.WithTitle("The server's settings are the following:");
+                embed.AddField("Music channel:", $"`{ ch_names[0]}`");
+                embed.AddField("Role channel:", $"`{ ch_names[1]}`");
+                embed.AddField("Notification channel:", $"`{ ch_names[2]}`");
+                embed.AddField("Notification role:", $"`{ ch_names[3]}`");
 
-            embed.WithThumbnailUrl(Program.Config.Img);
-            embed.WithTimestamp(DateTime.Now);
-            embed.WithColor(Color.Teal);
+                embed.WithThumbnailUrl(Program.Config.Img);
+                embed.WithTimestamp(DateTime.Now);
+                embed.WithColor(Color.Teal);
 
-            await ReplyAsync("", false, embed.Build());
+                await ReplyAsync("", false, embed.Build());
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Admin_Commands.cs ServerSettings", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs ServerSettings", ex.ToString()));
+            }
+        }
+
+
+
+        //Command for owner to add global greeting gifs
+        [Command("greeting add")]
+        [RequireOwner]
+        public async Task GreetingAdd(string url)
+        {
+            try
+            {
+                int id = DBFunctions.AllGreeting().Rows.Count + 1;
+
+                if (DBFunctions.GreetingAdd(id, url) > 0)
+                {
+                    await ReplyAsync("Greeting added!");
+                }
+                else await ReplyAsync("Greeting could not be added!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs GreetingAdd", ex.ToString()));
+            }
+        }
+
+
+
+        //Command for owner to remove global greeting gifs
+        [Command("greeting remove")]
+        [RequireOwner]
+        public async Task GreetingRemove(int id)
+        {
+            try
+            {
+                if (DBFunctions.GreetingRemove(id) > 0)
+                {
+                    await ReplyAsync("Greeting removed!");
+                }
+                else await ReplyAsync("Greeting could not be removed!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs GreetingRemove", ex.ToString()));
             }
         }
 
@@ -358,7 +416,7 @@ namespace Discord_Bot.Modules.Commands
 
         //Command for owner, the bot says in whatever channel you gave it what you told it to say
         [Command("say")]
-        [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireOwner]
         public async Task Say(IMessageChannel channel, [Remainder] string text)
         {
             if (Context.Guild.TextChannels.Contains(channel))

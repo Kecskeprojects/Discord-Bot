@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace Discord_Bot
 {
-    internal class StartupFunctions : DBManagement
+    internal class StartupFunctions : DBFunctions
     {
         //Testing connection by pinging google
         public static bool Connection()
@@ -68,7 +68,7 @@ namespace Discord_Bot
         //A list of the current servers
         public static void ServerList()
         {
-            var table = Read($"SELECT * FROM `serversetting`");
+            var table = AllServerSetting();
 
             if (table.Rows.Count > 0)
             {
@@ -113,7 +113,7 @@ namespace Discord_Bot
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Something went wrong!\n" + ex.ToString());
+                Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Management.cs Startup", ex.ToString()));
             }
@@ -142,7 +142,7 @@ namespace Discord_Bot
         //3 second time limit to event by default
         public static void Closing(object sender, EventArgs e)
         {
-            Global.Logs.Add(new Log("LOG", "Application closing!"));
+            Global.Logs.Add(new Log("LOG", "Application closing..."));
             Log_to_file();
         }
 
@@ -166,7 +166,7 @@ namespace Discord_Bot
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Something went wrong!\n" + ex.ToString());
+                Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Log_to_File", ex.ToString()));
             }
@@ -185,7 +185,7 @@ namespace Discord_Bot
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Something went wrong!\n" + ex.ToString());
+                Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Log OnTimedEvent", ex.ToString()));
             }

@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.Rest;
-using Discord.WebSocket;
 using System;
 using System.Threading.Tasks;
 using Discord_Bot.Modules;
@@ -17,17 +16,17 @@ namespace Discord_Bot
         {
             try
             {
-                var table = DBManagement.Read($"SELECT `url` FROM `customcommand` WHERE `serverId` = '{context.Guild.Id}' AND `command` = '{context.Message.Content[1..].ToLower()}'");
+                var row = DBFunctions.CustomCommandGet(context.Guild.Id, context.Message.Content[1..].ToLower());
 
-                if (table.Rows.Count > 0) 
+                if (DBFunctions.CustomCommandGet(context.Guild.Id, context.Message.Content[1..].ToLower()) != null) 
                 {
-                    await context.Message.Channel.SendMessageAsync(table.Rows[0][0].ToString());
+                    await context.Message.Channel.SendMessageAsync(row[2].ToString());
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Something went wrong!\n" + ex.ToString());
+                Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Custom_Commands", ex.ToString()));
             }
@@ -43,12 +42,12 @@ namespace Discord_Bot
             {
                 RestUserMessage reply = null;
 
-                var table = DBManagement.Read($"SELECT * FROM `role` WHERE `serverId` = '{context.Guild.Id}' AND LOWER(`roleName`) = '{context.Message.Content[1..].ToLower()}'");
+                var row = DBFunctions.SelfRoleGet(context.Guild.Id, context.Message.Content[1..].ToLower());
 
-                if (table.Rows.Count > 0)
+                if (row != null)
                 {
-                    string name = table.Rows[0][1].ToString();
-                    ulong id = ulong.Parse(table.Rows[0][2].ToString());
+                    string name = row[1].ToString();
+                    ulong id = ulong.Parse(row[2].ToString());
 
                     IRole get_role = (context.Channel as IGuildChannel).Guild.GetRole(id);
 
@@ -78,7 +77,7 @@ namespace Discord_Bot
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Can't add/delete role!\n" + ex.ToString());
+                Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Self_role", ex.ToString()));
             }
@@ -87,32 +86,32 @@ namespace Discord_Bot
 
 
         //Check for messages starting with I think and certain Keywords
-        public static async Task Feature_Check(SocketUserMessage message)
+        public static async Task Feature_Check(SocketCommandContext context)
         {
             try
             {
                 if (new Random().Next(1, 101) < 10)
                 {
-                    string mess = message.Content.ToLower();
-                    if (mess.StartsWith("i think")) { await message.Channel.SendMessageAsync("I agree wholeheartedly!"); return; }
+                    string mess = context.Message.Content.ToLower();
+                    if (mess.StartsWith("i think")) { await context.Channel.SendMessageAsync("I agree wholeheartedly!"); return; }
 
                     else if (mess.StartsWith("i am") || mess.StartsWith("i'm"))
                     {
-                        await message.Channel.SendMessageAsync(string.Concat("Hey ", message.Content.AsSpan(mess.StartsWith("i am") ? 5 : 4), ", I'm Kim Synthji!"));
+                        await context.Channel.SendMessageAsync(string.Concat("Hey ", context.Message.Content.AsSpan(mess.StartsWith("i am") ? 5 : 4), ", I'm Kim Synthji!"));
                         return;
                     }
                 }
 
-                var table = DBManagement.Read($"SELECT `response` FROM `keyword` WHERE `trigger` = '{message.Content}'");
-                if (table.Rows.Count > 0)
+                var row = DBFunctions.KeywordGet(context.Guild.Id, context.Message.Content);
+                if (row != null)
                 {
-                    await message.Channel.SendMessageAsync(table.Rows[0][0].ToString());
+                    await context.Channel.SendMessageAsync(row[2].ToString());
                     return;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Something went wrong!\n" + ex.ToString());
+                Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Feature_Check", ex.ToString()));
             }
