@@ -10,13 +10,12 @@ namespace Discord_Bot.Modules.API.Lastfm
     public class LastfmFunctions
     {
         //Checking the total plays of a user using the topartist part of the api, as it has the least amount of entries in any case
-        public static async Task<int> TotalPlays(RestClient _client, string name, string period)
+        public static async Task<int> TotalPlays(string name, string period)
         {
             int page = 1, totalpage, totalplays = 0;
             do
             {
-                var track_req = new RestRequest($"?method=user.gettopartists&user={name}&api_key={Program.Config.Lastfm_API_Key}&limit=1000&period={period}&page={page}&format=json");
-                var temp2 = await _client.GetAsync(track_req);
+                var temp2 = await RequestHandler("user.gettopartists", name, period: period, page:page);
                 var track_res = JsonConvert.DeserializeObject<TopArtistClass.TopArtist>(temp2.Content);
 
                 foreach (var artist in track_res.TopArtists.Artist)
@@ -72,6 +71,24 @@ namespace Discord_Bot.Modules.API.Lastfm
             else throw new Exception("Too many or too few parameters!");
 
             return outarray;
+        }
+
+
+
+        static readonly RestClient _client = new("http://ws.audioscrobbler.com/2.0/");
+        public static async Task<RestResponse> RequestHandler(string type, string name, int limit = 0, int page = 0, string period = "")
+        {
+            string request_string = $"?method={type}&user={name}&api_key={Program.Config.Lastfm_API_Key}";
+
+            if (limit != 0) request_string += $"&limit={limit}";
+            if (page != 0) request_string += $"&page={page}";
+            if (period != "") request_string += $"&period={period}";
+
+            request_string += "&format=json";
+
+            var request = new RestRequest(request_string);
+            var temp = await _client.GetAsync(request);
+            return temp;
         }
     }
 }

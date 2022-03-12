@@ -3,9 +3,6 @@ using Discord_Bot.Modules.API.Lastfm;
 using Discord_Bot.Modules.Database;
 using Discord_Bot.Modules.ListClasses;
 using System;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Discord_Bot.Modules.Commands

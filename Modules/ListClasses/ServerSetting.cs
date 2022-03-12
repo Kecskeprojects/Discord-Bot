@@ -10,6 +10,8 @@
         public ulong TNotifChannel { get; set; }
         public ulong TNotifRole { get; set; }
 
+        public bool TwitchOnline { get; set; }
+
         public ServerSetting() { }
 
         public ServerSetting(ulong serverId)
@@ -21,6 +23,7 @@
             TChannelLink = "";
             TNotifChannel = 0;
             TNotifRole = 0;
+            TwitchOnline = false;
         }
 
         public ServerSetting(System.Data.DataRow row)
@@ -35,6 +38,7 @@
                 TNotifChannel = ulong.Parse(row[5].ToString());
                 TNotifRole = ulong.Parse(row[6].ToString());
             }
+            TwitchOnline = false;
         }
     }
 }

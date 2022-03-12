@@ -89,10 +89,10 @@ namespace Discord_Bot
 
             await _client.StartAsync();
 
-            /*new Thread(delegate ()
+            new Thread(() =>
             {
-                Twitch_API.Twitch(_services.GetService<ConfigHandler>().Get_Default_Twitch_Notif_Channel(), _client, _services.GetService<ConfigHandler>().Get_Default_Twitch_Notif_Role());
-            }).Start();*/
+                Modules.API.TwitchAPI.Twitch(_client);
+            }).Start();
 
             await Task.Delay(-1);
         }

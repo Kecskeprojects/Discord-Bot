@@ -2,7 +2,6 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using RestSharp;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -13,20 +12,17 @@ namespace Discord_Bot.Modules.API.Lastfm
 {
     public class LastfmAPI : LastfmFunctions
     {
-        static readonly RestClient _client = new("http://ws.audioscrobbler.com/2.0/");
-        
         public static async Task TopTracks(SocketCommandContext context, string name, int limit, string period)
         {
             try
             {
                 //Getting data from api
-                var request = new RestRequest($"?method=user.gettoptracks&user={name}&api_key={Program.Config.Lastfm_API_Key}&limit={limit}&period={period}&format=json");
-                var temp = await _client.GetAsync(request);
+                var temp = await RequestHandler("user.gettoptracks", name, limit: limit, period: period);
                 var response = JsonConvert.DeserializeObject<TopTrackClass.TopTrack>(temp.Content);
 
                 if (response.TopTracks != null)
                 {
-                    int totalplays = await TotalPlays(_client, name, period);
+                    int totalplays = await TotalPlays(name, period);
 
                     //Building embed
                     EmbedBuilder builder = new();
@@ -68,13 +64,12 @@ namespace Discord_Bot.Modules.API.Lastfm
             try
             {
                 //Getting data from api
-                var request = new RestRequest($"?method=user.gettopalbums&user={name}&api_key={Program.Config.Lastfm_API_Key}&limit={limit}&period={period}&format=json");
-                var temp = await _client.GetAsync(request);
+                var temp = await RequestHandler("user.gettopalbums", name, limit: limit, period: period);
                 var response = JsonConvert.DeserializeObject<TopAlbumClass.TopAlbum>(temp.Content);
 
                 if (response.TopAlbums != null)
                 {
-                    int totalplays = await TotalPlays(_client, name, period);
+                    int totalplays = await TotalPlays(name, period);
 
                     //Building embed
                     EmbedBuilder builder = new();
@@ -117,13 +112,12 @@ namespace Discord_Bot.Modules.API.Lastfm
             try
             {
                 //Getting data from api
-                var request = new RestRequest($"?method=user.gettopartists&user={name}&api_key={Program.Config.Lastfm_API_Key}&limit={limit}&period={period}&format=json");
-                var temp = await _client.GetAsync(request);
+                var temp = await RequestHandler("user.gettopartists", name, limit: limit, period: period);
                 var response = JsonConvert.DeserializeObject<TopArtistClass.TopArtist>(temp.Content);
 
                 if (response.TopArtists != null)
                 {
-                    int totalplays = await TotalPlays(_client, name, period);
+                    int totalplays = await TotalPlays(name, period);
 
                     //Building embed
                     EmbedBuilder builder = new();
@@ -165,8 +159,7 @@ namespace Discord_Bot.Modules.API.Lastfm
             try
             {
                 //Getting data from api
-                var request = new RestRequest($"?method=user.getrecenttracks&user={name}&api_key={Program.Config.Lastfm_API_Key}&limit=1&format=json");
-                var temp = await _client.GetAsync(request);
+                var temp = await RequestHandler("user.getrecenttracks", name, limit: 1);
                 var response = JsonConvert.DeserializeObject<RecentClass.Recent>(temp.Content);
 
                 if(response.RecentTracks != null)
@@ -215,10 +208,8 @@ namespace Discord_Bot.Modules.API.Lastfm
         {
             try
             {
-                Console.WriteLine($"?method=user.getrecenttracks&user={name}&api_key={Program.Config.Lastfm_API_Key}&limit={limit}&format=json");
                 //Getting data from api
-                var request = new RestRequest($"?method=user.getrecenttracks&user={name}&api_key={Program.Config.Lastfm_API_Key}&limit={limit}&format=json");
-                var temp = await _client.GetAsync(request);
+                var temp = await RequestHandler("user.getrecenttracks", name, limit: limit);
                 var response = JsonConvert.DeserializeObject<RecentClass.Recent>(temp.Content);
 
                 if(response.RecentTracks != null)
@@ -269,8 +260,8 @@ namespace Discord_Bot.Modules.API.Lastfm
                 page = 1;
                 do
                 {
-                    var album_req = new RestRequest($"?method=user.gettopalbums&user={name}&api_key={Program.Config.Lastfm_API_Key}&limit=1000&page={page}&format=json");
-                    var temp = await _client.GetAsync(album_req);
+                    //Getting data from api
+                    var temp = await RequestHandler("user.gettopalbums", name, limit: 1000, page: page);
                     var album_res = JsonConvert.DeserializeObject<TopAlbumClass.TopAlbum>(temp.Content);
 
                     if(album_res.TopAlbums == null)
@@ -298,8 +289,8 @@ namespace Discord_Bot.Modules.API.Lastfm
                 page = 1; totalpage = 0;
                 do
                 {
-                    var track_req = new RestRequest($"?method=user.gettoptracks&user={name}&api_key={Program.Config.Lastfm_API_Key}&limit=1000&page={page}&format=json");
-                    var temp = await _client.GetAsync(track_req);
+                    //Getting data from api
+                    var temp = await RequestHandler("user.gettoptracks", name, limit: 1000, page: page);
                     var track_res = JsonConvert.DeserializeObject<TopTrackClass.TopTrack>(temp.Content);
 
                     foreach (var track in track_res.TopTracks.Track)
