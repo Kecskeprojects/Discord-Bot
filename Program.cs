@@ -7,6 +7,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Discord_Bot.Modules;
+using Discord_Bot.Modules.API;
 using Discord_Bot.Modules.Commands;
 using Discord_Bot.Modules.Database;
 using Discord_Bot.Modules.ListClasses;
@@ -70,7 +71,6 @@ namespace Discord_Bot
                 .AddSingleton(_client)
                 .AddSingleton(_commands)
                 .AddSingleton<ConfigHandler>()
-                //.AddSingleton<AudioService>()
                 .BuildServiceProvider();
 
             StartupFunctions.DBCheck();
@@ -78,8 +78,9 @@ namespace Discord_Bot
             StartupFunctions.ServerList();
 
             await _services.GetService<ConfigHandler>().PopulateConfig();
-
             Config = _services.GetService<ConfigHandler>();
+
+            YoutubeAPI.KeyReset();
 
             _client.Log += Client_Log;
 
@@ -184,6 +185,7 @@ namespace Discord_Bot
             if(message.HasCharPrefix('!', ref argPos))
             {
                 var result = await _commands.ExecuteAsync(context, argPos, _services);
+                Console.WriteLine(result.ErrorReason);
 
                 //In case there is no such hard coded command, check the list of custom commands
                 if (!result.IsSuccess)

@@ -18,7 +18,6 @@ namespace Discord_Bot.Modules.API
         private TwitchLib.Api.TwitchAPI API;
         private static DiscordSocketClient Client;
         private static string Token;
-        private static int Token_tick = 0;
 
 
 
@@ -56,7 +55,7 @@ namespace Discord_Bot.Modules.API
             API.Settings.ClientId = Program.Config.Twitch_Client_Id;
             API.Settings.AccessToken = Token;
 
-            Monitor = new LiveStreamMonitorService(API, 5);
+            Monitor = new LiveStreamMonitorService(API);
 
             List<string> lst = new();
 
@@ -79,6 +78,7 @@ namespace Discord_Bot.Modules.API
         //Make announcement when stream comes online
         private void Monitor_OnStreamOnline(object sender, OnStreamOnlineArgs e)
         {
+            Console.WriteLine("Streamer user id test: " + e.Stream.UserId);
             foreach (var server in Global.servers)
             {
                 if (!server.Value.TwitchOnline && server.Value.TChannelId == e.Stream.UserId)
@@ -112,6 +112,7 @@ namespace Discord_Bot.Modules.API
             Console.WriteLine(Global.Current_Time() + ": Stream is now offline!");
             Global.Logs.Add(new Log("QUERY", "Stream is now offline!"));
 
+            Console.WriteLine("Streamer user id test: " + e.Stream.UserId);
             foreach (var server in Global.servers)
             {
                 if (server.Value.TwitchOnline && server.Value.TChannelId == e.Stream.UserId)
@@ -124,16 +125,17 @@ namespace Discord_Bot.Modules.API
 
 
         //On every tick(3 minutes), send message on console, every 24 hours, refresh token and reset counter
+        private static int Token_tick = 0;
         private void Monitor_OnServiceTick(object sender, OnServiceTickArgs e)
         {
             Token_tick++;
             if(Token_tick > 1440) { Token = Generate_Token(); Token_tick = 0; }
-            if(Token_tick % 60 == 0)
+            if(Token_tick % 120 == 0)
             {
                 Console.WriteLine("========================");
-                Console.WriteLine(Global.Current_Time() + ": 60 queries have been completed!");
+                Console.WriteLine(Global.Current_Time() + ": 120 queries have been completed!");
                 Console.WriteLine("========================");
-                Global.Logs.Add(new Log("QUERY", "60 queries have been completed!"));
+                Global.Logs.Add(new Log("QUERY", "120 queries have been completed!"));
             }
         }
 

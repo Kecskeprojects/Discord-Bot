@@ -8,6 +8,7 @@ using System.IO;
 using System.Timers;
 using System.Threading.Tasks;
 using System.Linq;
+using Discord_Bot.Modules.API;
 
 namespace Discord_Bot
 {
@@ -128,6 +129,8 @@ namespace Discord_Bot
             if (minutes_count == 1440) minutes_count = 0;
 
             if (minutes_count == 0) DatabaseBackup();
+
+            if (DateTime.Now.Hour == 10 && DateTime.Now.Minute == 0) YoutubeAPI.KeyReset();
 
             Log_to_file();
 
