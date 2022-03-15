@@ -20,8 +20,10 @@ namespace Discord_Bot
         //The main program, runs even if the bot crashes, and restarts it
         static void Main()
         {
+            //Event handler for the closing of the app
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(StartupFunctions.Closing);
 
+            //Constant timer, only stopping when the Bot's process stops
             System.Timers.Timer aTimer = new(60000) { AutoReset = true }; //1 minute
 
             aTimer.Elapsed += new ElapsedEventHandler(StartupFunctions.OnTimedEvent);
@@ -58,7 +60,6 @@ namespace Discord_Bot
         private DiscordSocketClient _client;
         private CommandService _commands;
         private IServiceProvider _services;
-        public static ConfigHandler Config;
 
 
 
@@ -70,29 +71,25 @@ namespace Discord_Bot
             _services = new ServiceCollection()
                 .AddSingleton(_client)
                 .AddSingleton(_commands)
-                .AddSingleton<ConfigHandler>()
                 .BuildServiceProvider();
 
             StartupFunctions.DBCheck();
             StartupFunctions.Check_Folders();
             StartupFunctions.ServerList();
 
-            await _services.GetService<ConfigHandler>().PopulateConfig();
-            Config = _services.GetService<ConfigHandler>();
-
             YoutubeAPI.KeyReset();
 
-            _client.Log += Client_Log;
+            _client.Log += ClientLog;
 
             await RegisterCommandsAsync();
 
-            await _client.LoginAsync(TokenType.Bot, Config.Token);
+            await _client.LoginAsync(TokenType.Bot, Global.Config.Token);
 
             await _client.StartAsync();
 
             new Thread(() =>
             {
-                Modules.API.TwitchAPI.Twitch(_client);
+                TwitchAPI.Twitch(_client);
             }).Start();
 
             await Task.Delay(-1);
@@ -101,7 +98,7 @@ namespace Discord_Bot
 
 
         //Client Messages
-        private Task Client_Log(LogMessage arg)
+        private Task ClientLog(LogMessage arg)
         {
             if (arg.Exception != null)
             {
@@ -119,7 +116,7 @@ namespace Discord_Bot
                     {
                             Console.WriteLine(arg.Exception);
                             Global.Logs.Add(new Log("DEV", arg.Exception.Message));
-                            Global.Logs.Add(new Log("ERROR", "Program.cs Client_Log", arg.ToString()));
+                            Global.Logs.Add(new Log("ERROR", "Program.cs ClientLog", arg.ToString()));
                             break;
                     }
                 }
@@ -159,6 +156,8 @@ namespace Discord_Bot
             if (message.Content.Length < 1) return;
             else Global.Logs.Add(new Log("MES_USER", message.Content));
 
+
+            //If message is a direct message, check the direct commands
             if (context.Guild == null) { await DirectMessageHandler.Handle(context); return; }
 
 
@@ -169,7 +168,7 @@ namespace Discord_Bot
 
                 if(affected > 0)
                 {
-                    Global.servers.Add(context.Guild.Id, new ServerSetting(context.Guild.Id));
+                    Global.servers.Add(context.Guild.Id, new Server(context.Guild.Id));
 
                     Console.WriteLine($"{context.Guild.Name} added to the server list!");
                     Global.Logs.Add(new Log("LOG", $"{context.Guild.Name} added to the server list!"));
@@ -192,7 +191,7 @@ namespace Discord_Bot
                 {
                     if (result.ErrorReason == "Unknown command.") 
                     {
-                        if (await ProgramFunctions.Custom_Commands(context)) return;
+                        if (await ProgramFunctions.CustomCommands(context)) return;
                     }
 
                     Console.WriteLine(result.ErrorReason);
@@ -208,7 +207,7 @@ namespace Discord_Bot
                 if(message.HasCharPrefix('+', ref argPos) || message.HasCharPrefix('-', ref argPos))
                 {
                     //self roles
-                    await ProgramFunctions.Self_role(context);
+                    await ProgramFunctions.SelfRole(context);
                 }
             }
             else
@@ -223,18 +222,11 @@ namespace Discord_Bot
                     }
                 }
                 //Responses to triggers
-                else _ = ProgramFunctions.Feature_Check(context);
+                else _ = ProgramFunctions.FeatureCheck(context);
                 
             }
 
             await Task.CompletedTask;
         }
-
-        
-        //Checking for music channel, come back to it when you get to that point
-
-        /*if (server != -1 && (Global.Server_settings[server].music_channel == context.Channel.Id 
-         * || Global.Server_settings[server].music_channel == 0)) Global.Is_music_channel = true;
-        else Global.Is_music_channel = false;*/
     }
 }

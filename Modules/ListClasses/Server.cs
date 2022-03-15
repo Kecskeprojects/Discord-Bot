@@ -2,7 +2,7 @@
 
 namespace Discord_Bot.Modules.ListClasses
 {
-    public class ServerSetting
+    public class Server
     {
         public ulong? ServerId { get; set; }
 
@@ -24,9 +24,11 @@ namespace Discord_Bot.Modules.ListClasses
 
         public List<MusicRequest> MusicRequests { get; set; }
 
-        public ServerSetting() { }
 
-        public ServerSetting(ulong serverId)
+        public Server() { }
+
+
+        public Server(ulong serverId)
         {
             ServerId = serverId;
             MusicChannel = 0;
@@ -41,7 +43,7 @@ namespace Discord_Bot.Modules.ListClasses
         }
         
 
-        public ServerSetting(System.Data.DataRow row)
+        public Server(System.Data.DataRow row)
         {
             if (row != null)
             {

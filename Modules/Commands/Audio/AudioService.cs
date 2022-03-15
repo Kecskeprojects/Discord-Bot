@@ -16,8 +16,12 @@ namespace Discord_Bot.Modules.Commands.Audio
             ulong sId = context.Guild.Id;
             try
             {
-                if (!Check_Video(context, url)) return;
+                //Check video  restriction
+                if (!CheckVideo(context, url)) return;
 
+                //Looping in case video could not play correctly the first time
+                //In most cases, it only runs once, this is done for edge cases,
+                //to a maximum of 3 loops, which seems to be more than enough
                 while (true)
                 {
                     Global.servers[sId].AudioVars.FFmpeg = CreateYoutubeStream(url);
@@ -26,7 +30,7 @@ namespace Discord_Bot.Modules.Commands.Audio
                     Global.servers[sId].AudioVars.Stopwatch = Stopwatch.StartNew();
 
                     //Audio streaming
-                    using (Global.servers[sId].AudioVars.Discord = client.CreatePCMStream(AudioApplication.Mixed, Program.Config.Bitrate, 2000))
+                    using (Global.servers[sId].AudioVars.Discord = client.CreatePCMStream(AudioApplication.Mixed, Global.Config.Bitrate, 2000))
                     {
                         Console.WriteLine("[" + Global.Current_Time() + "]: Audio stream starting!");
                         Global.Logs.Add(new Log("LOG", "Audio stream starting!"));
@@ -35,9 +39,9 @@ namespace Discord_Bot.Modules.Commands.Audio
                         finally { await Global.servers[sId].AudioVars.Discord.FlushAsync(); }
                     };
 
-                    Global.servers[sId].AudioVars.Stopwatch.Stop();
-
-                    //In case youtube-dl comes back with an exit code of 1, try playing the song again, the reason for it returning with 1 is unknown but it does it randomly
+                    //In case youtube-dl comes back with an exit code of 1,
+                    //Do not exit the loop, in any other case, exit the loop,
+                    //the reason for it returning with 1 is unknown but it does it seemingly randomly
                     if (Global.servers[sId].AudioVars.FFmpeg.ExitCode != 0 && count < 3)
                     {
                         Console.WriteLine("Something went wrong with the ffmpeg process! EXIT CODE: " + Global.servers[sId].AudioVars.FFmpeg.ExitCode + " Tries: " + (count + 1));
@@ -46,20 +50,11 @@ namespace Discord_Bot.Modules.Commands.Audio
                         {
                             Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
                             count++;
-                            await Stream(context, client, url);
                         }
                         else break;
                     }
                     else break;
                 }
-                
-                Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
-                count = 0;
-
-                Console.WriteLine("[" + Global.Current_Time() + "]: Audio stream finished!");
-                Global.Logs.Add(new Log("LOG", "Audio stream finished!"));
-
-                return;
             }
             //Exception thrown with current version of skipping song
             catch(ObjectDisposedException)
@@ -75,9 +70,12 @@ namespace Discord_Bot.Modules.Commands.Audio
                 Global.Logs.Add(new Log("ERROR", "AudioService.cs Stream", ex.ToString()));
             }
 
+            Global.servers[sId].AudioVars.Stopwatch.Stop();
+            Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
+            count = 0;
+
             Console.WriteLine("[" + Global.Current_Time() + "]: Audio stream finished!");
             Global.Logs.Add(new Log("LOG", "Audio stream finished!"));
-            Global.servers[sId].AudioVars.Stopwatch.Stop();
             return;
         }
 
@@ -103,7 +101,8 @@ namespace Discord_Bot.Modules.Commands.Audio
 
 
         //Check the video before playing it, to root out age and country restricted content
-        private static bool Check_Video(SocketCommandContext context, string url)
+        //Returns true if video is downloadable, false if not
+        private static bool CheckVideo(SocketCommandContext context, string url)
         {
             Process process = new()
             {
@@ -123,21 +122,24 @@ namespace Discord_Bot.Modules.Commands.Audio
 
             process.WaitForExit();
 
+            //If the error stream is empty, return true, else, send back the issue to the user
             if (Error.Length == 0) return true;
             else
             {
                 if (Error.Contains("ERROR: Sign in to confirm your age"))
                 {
                     context.Channel.SendMessageAsync("This video is age restricted, song skipped!");
+                    Global.Logs.Add(new Log("LOG", "This video is age restricted, song skipped!"));
                 }
                 else if (Error.Contains("ERROR: The uploader has not made this video available in your country."))
                 {
                     context.Channel.SendMessageAsync("This video is country-restricted in the bot's current location!");
+                    Global.Logs.Add(new Log("LOG", "This video is country-restricted in the bot's current location!"));
                 }
                 else
                 {
                     Console.WriteLine(Error);
-                    Global.Logs.Add(new Log("ERROR", "AudioService.cs Check_Video", Error));
+                    Global.Logs.Add(new Log("DEV", "AudioService.cs CheckVideo", Error));
                 }
                 return false;
             }

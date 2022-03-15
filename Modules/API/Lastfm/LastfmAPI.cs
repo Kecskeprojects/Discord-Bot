@@ -53,7 +53,7 @@ namespace Discord_Bot.Modules.API.Lastfm
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Lastfm_api.cs TopTracks", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "LastfmAPI.cs TopTracks", ex.ToString()));
             }
         }
 
@@ -101,7 +101,7 @@ namespace Discord_Bot.Modules.API.Lastfm
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Lastfm_api.cs TopArtists", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "LastfmAPI.cs TopArtists", ex.ToString()));
             }
         }
 
@@ -148,7 +148,7 @@ namespace Discord_Bot.Modules.API.Lastfm
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Lastfm_api.cs TopArtists", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "LastfmAPI.cs TopArtists", ex.ToString()));
             }
         }
 
@@ -198,7 +198,7 @@ namespace Discord_Bot.Modules.API.Lastfm
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Lastfm_api.cs NowPlaying", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "LastfmAPI.cs NowPlaying", ex.ToString()));
             }
         }
 
@@ -244,7 +244,7 @@ namespace Discord_Bot.Modules.API.Lastfm
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Lastfm_api.cs Recent", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "LastfmAPI.cs Recent", ex.ToString()));
             }
         }
 
@@ -347,7 +347,7 @@ namespace Discord_Bot.Modules.API.Lastfm
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Lastfm_api.cs Artist", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "LastfmAPI.cs Artist", ex.ToString()));
             }
         }
     }

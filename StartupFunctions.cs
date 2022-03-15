@@ -14,7 +14,7 @@ namespace Discord_Bot
 {
     internal class StartupFunctions : DBFunctions
     {
-        //Testing connection by pinging google
+        //Testing connection by pinging google, it is quite a problem if that's down too
         public static bool Connection()
         {
             try
@@ -66,7 +66,7 @@ namespace Discord_Bot
 
 
 
-        //A list of the current servers
+        //Setting the list of servers we currently have in the database
         public static void ServerList()
         {
             var table = AllServerSetting();
@@ -75,7 +75,7 @@ namespace Discord_Bot
             {
                 foreach (DataRow server in table.Rows)
                 {
-                    Global.servers.Add(ulong.Parse(server[0].ToString()), new ServerSetting(server));
+                    Global.servers.Add(ulong.Parse(server[0].ToString()), new Server(server));
                 }
             }
         }
@@ -116,7 +116,7 @@ namespace Discord_Bot
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Management.cs Startup", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "StartupFunctions.cs Startup", ex.ToString()));
             }
         }
 
@@ -132,7 +132,7 @@ namespace Discord_Bot
 
             if (DateTime.Now.Hour == 10 && DateTime.Now.Minute == 0) YoutubeAPI.KeyReset();
 
-            Log_to_file();
+            LogToFile();
 
             minutes_count++;
 
@@ -146,14 +146,14 @@ namespace Discord_Bot
         public static void Closing(object sender, EventArgs e)
         {
             Global.Logs.Add(new Log("LOG", "Application closing..."));
-            Log_to_file();
+            LogToFile();
         }
 
 
 
         //For logging messages, errors, and messages to log files
         static StreamWriter LogFile_writer = null;
-        public static void Log_to_file()
+        public static void LogToFile()
         {
             try
             {
@@ -171,13 +171,13 @@ namespace Discord_Bot
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Log_to_File", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "StartupFunctions.cs LogtoFile", ex.ToString()));
             }
         }
 
 
 
-        //Copy database to Assets\Data folder, done once a day
+        //Copy database to Assets\Data folder, done once a day and a minute after starting the bot
         public static void DatabaseBackup()
         {
             try

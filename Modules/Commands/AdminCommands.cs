@@ -329,7 +329,7 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                ServerSetting server = Global.servers[Context.Guild.Id];
+                Server server = Global.servers[Context.Guild.Id];
                 ulong[] ids = { server.MusicChannel, server.RoleChannel, server.TNotifChannel, server.TNotifRole };
                 string[] ch_names = { "none", "none", "none", "none" };
 
@@ -350,7 +350,7 @@ namespace Discord_Bot.Modules.Commands
                 embed.AddField("Notification channel:", $"`{ ch_names[2]}`");
                 embed.AddField("Notification role:", $"`{ ch_names[3]}`");
 
-                embed.WithThumbnailUrl(Program.Config.Img);
+                embed.WithThumbnailUrl(Global.Config.Img);
                 embed.WithTimestamp(DateTime.Now);
                 embed.WithColor(Color.Teal);
 

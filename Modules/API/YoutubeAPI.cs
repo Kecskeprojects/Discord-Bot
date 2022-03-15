@@ -15,7 +15,7 @@ namespace Discord_Bot.Modules.API
 
     public class YoutubeAPI
     {
-        static readonly Dictionary<string, int> keys = new();
+        private static readonly Dictionary<string, int> keys = new();
         private static int youtube_index = 0;
 
         [STAThread]
@@ -37,7 +37,7 @@ namespace Discord_Bot.Modules.API
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Youtube_api.cs Searching", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "YoutubeAPI.cs Searching", ex.ToString()));
             }
             return -1;
         }
@@ -47,61 +47,74 @@ namespace Discord_Bot.Modules.API
         //The function running the query
         private async Task<int> Run(SocketCommandContext context, string query)
         {
-            var global_keys = Program.Config.Youtube_API_Keys;
+            var current_key = Global.Config.Youtube_API_Keys[youtube_index];
 
             //switching api keys
-            if (keys[global_keys[youtube_index]] >= 9900)
+            if (keys[current_key] >= 9900)
             {
-                keys.Remove(global_keys[youtube_index]);
+                keys.Remove(current_key);
 
-                int i = 0; Random r = new();
+                Random r = new();
 
                 youtube_index = r.Next(0, keys.Count);
+                current_key = Global.Config.Youtube_API_Keys[youtube_index];
 
-                Console.WriteLine("Key switched out to key in " + youtube_index + " position, value: " + global_keys[i] + "!");
-                Global.Logs.Add(new Log("LOG", "Key switched out to key in " + youtube_index + " position, value: " + global_keys[i] + "!"));
+                Console.WriteLine("Key switched out to key in " + youtube_index + " position, value: " + current_key + "!");
+                Global.Logs.Add(new Log("LOG", "Key switched out to key in " + youtube_index + " position, value: " + current_key + "!"));
             }
 
             var youtubeService = new YouTubeService(new BaseClientService.Initializer()
             {
-                ApiKey = global_keys[youtube_index],
+                ApiKey = current_key,
                 ApplicationName = GetType().ToString()
             });
 
-            Console.WriteLine("API key used: " + global_keys[youtube_index]);
-            Global.Logs.Add(new Log("Query", "API key used: " + global_keys[youtube_index]));
-            
+            Console.WriteLine("API key used: " + current_key);
+            Global.Logs.Add(new Log("Query", "API key used: " + current_key));
+
             if (query.Contains("youtu.be") || query.Contains("youtube"))
             {
+                //If the link is a short link youtu.be/..., you have to cut off a different length of it
                 if (query.Contains("youtu.be"))
                 {
                     query = query[(query.IndexOf(".be") + 4)..];
-                    return await Video_Search(context, youtubeService, query);
+                    return await VideoSearch(context, youtubeService, query);
                 }
+                //If the link is a regular youtube link, but has "watch", it is a single video's link
                 else if (query.Contains("watch"))
                 {
+                    //If it has a '&' symbol. it potentially has a playlist_id or a timestamp in it that we have to cut off
                     string playlist_id = "";
                     if (query.Contains('&'))
                     {
+                        //Check if it is a timestamp(it is always after the playlist link),
+                        //if it isn't, cut off the "list=" part, and we have the playlist link, and cut off the timestamp, if it had any
                         if (!query.Split('&')[1].StartsWith("t="))
                         {
                             playlist_id = query.Split('&')[1][5..];
                             query = query.Split('&')[0];
                         }
+                        //if it starts with a timestamp, simply cut it off, it does not have a playlist id
                         else query = query.Split('&')[0];
                     }
+                    //Cut off the "v=" part of the video id
                     query = query[(query.IndexOf("v=") + 2)..];
 
-                    if (playlist_id != "") _ = Add_Playlist(context, youtubeService, playlist_id);
-                    return await Video_Search(context, youtubeService, query);
+                    //if it did have a playlist id, start an unawaited function that asks the user if they want it imported
+                    if (playlist_id != "") _ = AddPlaylist(context, youtubeService, playlist_id);
+
+                    return await VideoSearch(context, youtubeService, query);
                 }
+                //If the link is a regular youtube link, but has "playlist", it is a playlist link
                 else if (query.Contains("playlist"))
                 {
                     query = query[(query.IndexOf("=") + 1)..];
-                    return await Playlist_Search(context, youtubeService, query);
+                    return await PlaylistSearch(context, youtubeService, query);
                 }
             }
-            else return await Keyword_Search(context, youtubeService, query);
+            //In any other case, search the result as a keyword
+            else return await KeywordSearch(context, youtubeService, query);
+
             return -1;
         }
 
@@ -111,7 +124,7 @@ namespace Discord_Bot.Modules.API
         public static void KeyReset()
         {
             keys.Clear();
-            foreach (string item in Program.Config.Youtube_API_Keys) keys.Add(item, 0);
+            foreach (string item in Global.Config.Youtube_API_Keys) keys.Add(item, 0);
 
             youtube_index = new Random().Next(0, keys.Count);
 
@@ -122,9 +135,9 @@ namespace Discord_Bot.Modules.API
 
 
         //Searching by video id
-        private static async Task<int> Video_Search(SocketCommandContext context, YouTubeService youtubeService, string query)
+        private static async Task<int> VideoSearch(SocketCommandContext context, YouTubeService youtubeService, string query)
         {
-            var global_keys = Program.Config.Youtube_API_Keys;
+            var current_key = Global.Config.Youtube_API_Keys[youtube_index];
 
             string name = (context.User as SocketGuildUser).Nickname ?? context.User.Username;
 
@@ -132,9 +145,20 @@ namespace Discord_Bot.Modules.API
             searchListRequest.Id = query;
             searchListRequest.MaxResults = 1;
 
-            // Call the search.list method to retrieve results matching the specified query term.
-            var searchListResponse = await searchListRequest.ExecuteAsync();
-            keys[global_keys[youtube_index]] += 1;
+            VideoListResponse searchListResponse = new();
+            try
+            {
+                // Call the SearchListRequest method to retrieve results matching the specified query term
+                searchListResponse = await searchListRequest.ExecuteAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "YoutubeAPI.cs KeywordSearch", ex.ToString()));
+            }
+
+            keys[current_key] += 1;
 
             if (searchListResponse.Items.Count < 1)
             {
@@ -160,17 +184,28 @@ namespace Discord_Bot.Modules.API
 
 
         //Searching for keywords
-        private static async Task<int> Keyword_Search(SocketCommandContext context, YouTubeService youtubeService, string query)
+        private static async Task<int> KeywordSearch(SocketCommandContext context, YouTubeService youtubeService, string query)
         {
-            var global_keys = Program.Config.Youtube_API_Keys;
+            var current_key = Global.Config.Youtube_API_Keys[youtube_index];
 
             var searchListRequest = youtubeService.Search.List("snippet");
             searchListRequest.Q = query;
             searchListRequest.MaxResults = 1;
 
-            // Call the search.list method to retrieve results matching the specified query term.
-            var searchListResponse = await searchListRequest.ExecuteAsync();
-            keys[global_keys[youtube_index]] += 100;
+            SearchListResponse searchListResponse = new();
+            try
+            {
+                // Call the SearchListRequest method to retrieve results matching the specified query term
+                searchListResponse = await searchListRequest.ExecuteAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "YoutubeAPI.cs KeywordSearch", ex.ToString()));
+            }
+
+            keys[current_key] += 100;
 
             if (searchListResponse.Items.Count < 1) 
             { 
@@ -184,11 +219,11 @@ namespace Discord_Bot.Modules.API
 
             if(searchListResponse.Items[0].Id.PlaylistId != null)
             {
-                return await Playlist_Search(context, youtubeService, searchListResponse.Items[0].Id.PlaylistId);
+                return await PlaylistSearch(context, youtubeService, searchListResponse.Items[0].Id.PlaylistId);
             }
             else if(searchListResponse.Items[0].Id.VideoId != null)
             {
-                return await Video_Search(context, youtubeService, searchListResponse.Items[0].Id.VideoId);
+                return await VideoSearch(context, youtubeService, searchListResponse.Items[0].Id.VideoId);
             }
             return -1;
         }
@@ -196,9 +231,9 @@ namespace Discord_Bot.Modules.API
 
 
         //Adding playlist
-        private static async Task<int> Playlist_Search(SocketCommandContext context, YouTubeService youtubeService, string query)
+        private static async Task<int> PlaylistSearch(SocketCommandContext context, YouTubeService youtubeService, string query)
         {
-            var global_keys = Program.Config.Youtube_API_Keys;
+            var current_key = Global.Config.Youtube_API_Keys[youtube_index];
 
             var searchListRequest = youtubeService.PlaylistItems.List("snippet,contentDetails");
 
@@ -208,19 +243,19 @@ namespace Discord_Bot.Modules.API
             PlaylistItemListResponse searchListResponse = new();
             try
             {
-                // Call the search.list method to retrieve results matching the specified query term.
+                // Call the SearchListRequest method to retrieve results matching the specified query term
                 searchListResponse = await searchListRequest.ExecuteAsync();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Youtube_api.cs Playlist_Search", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "YoutubeAPI.cs PlaylistSearch", ex.ToString()));
             }
 
-            keys[global_keys[youtube_index]] += 1;
+            keys[current_key] += 1;
 
-            if (searchListResponse.Items.Count == 0)
+            if (searchListResponse.Items.Count < 1)
             {
                 Console.WriteLine("No playlists found!");
                 Global.Logs.Add(new Log("QUERY", "No playlists found!"));
@@ -229,7 +264,7 @@ namespace Discord_Bot.Modules.API
 
             foreach (var item in searchListResponse.Items)
             {
-                await Video_Search(context, youtubeService, item.ContentDetails.VideoId);
+                await VideoSearch(context, youtubeService, item.ContentDetails.VideoId);
             }
 
             Console.WriteLine("Youtube playlist query complete!\n");
@@ -243,17 +278,19 @@ namespace Discord_Bot.Modules.API
 
 
         //Checking if user wants to add playlist
-        private static async Task Add_Playlist(SocketCommandContext context, YouTubeService youtubeService, string playlist_id)
+        private static async Task AddPlaylist(SocketCommandContext context, YouTubeService youtubeService, string playlist_id)
         {
             var message = await context.Channel.SendMessageAsync("You requested a song from a playlist!\n Do you want to me to add the playlist to the queue?");
             await message.AddReactionAsync(new Emoji("\U00002705"));
+
+            //Wait 15 seconds for user to react to message, and then delete it, also delete it if they react, but add playlist
             int timer = 0;
             while (timer <= 15)
             {
                 var result = await message.GetReactionUsersAsync(new Emoji("\U00002705"), 5).FlattenAsync();
                 if (result.Count() > 1) 
                 {
-                    await Playlist_Search(context, youtubeService, playlist_id);
+                    await PlaylistSearch(context, youtubeService, playlist_id);
                     break; 
                 }
                 await Task.Delay(1000);

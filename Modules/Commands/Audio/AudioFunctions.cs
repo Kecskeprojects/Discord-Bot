@@ -1,13 +1,10 @@
 ﻿using Discord;
-using Discord.Audio;
 using Discord.Commands;
 using Discord.WebSocket;
 using Discord_Bot.Modules.API;
 using Discord_Bot.Modules.ListClasses;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Discord_Bot.Modules.Commands.Audio
@@ -31,12 +28,17 @@ namespace Discord_Bot.Modules.Commands.Audio
             else result = YoutubeAPI.Searching(context, input);
 
             //If search results come back empty, return
-            if (result < 0) { await context.Channel.SendMessageAsync("No results found!"); return; }
+            if (result < 0) 
+            { 
+                await context.Channel.SendMessageAsync("No results found!");
+                Global.Logs.Add(new Log("LOG", "No results found!"));
+                return; 
+            }
 
             //Make embedded message if result was not a playlist and it's not the first song
             if (result != 1 && Global.servers[context.Guild.Id].MusicRequests.Count > 1) 
             { 
-                await RequestEmbed(context); 
+                await RequestEmbed(context, context.Guild.Id); 
             }
         }
 
@@ -53,17 +55,18 @@ namespace Discord_Bot.Modules.Commands.Audio
                 MusicRequest current = Global.servers[sId].MusicRequests[0];
 
                 await context.Channel.SendMessageAsync("Now Playing:\n`" + current.Title + "`");
+                Global.Logs.Add(new Log("LOG", "Now Playing:\n`" + current.Title + "`"));
 
                 //Streaming the music
                 await Stream(context, Global.servers[sId].AudioVars.AudioClient, current.URL.Split('&')[0]);
 
-                //Deleting the finished song
+                //Deleting the finished song if the list was not cleared for some other reason
                 if(Global.servers[sId].MusicRequests.Count > 0)
                 {
                     Global.servers[sId].MusicRequests.RemoveAt(0);
                 }
 
-                //If the playlist is empty and there is no song playing, start counting down
+                //If the playlist is empty and there is no song playing, start counting down for 60 seconds
                 if (Global.servers[sId].MusicRequests.Count == 0)
                 {
                     Console.WriteLine("Playlist empty!");
@@ -86,7 +89,8 @@ namespace Discord_Bot.Modules.Commands.Audio
                         await Task.Delay(1000);
                     }
 
-                    //In case counter reached it's limit, disconnect
+                    //In case counter reached it's limit, disconnect,
+                    //or if the bot disconnected for some other reason, leave the loop and clear the request list
                     if (j > 59 || Global.servers[sId].AudioVars.JoinedVoice == false)
                     {
                         clientUser = await context.Channel.GetUserAsync(context.Client.CurrentUser.Id) as IGuildUser;
@@ -94,6 +98,7 @@ namespace Discord_Bot.Modules.Commands.Audio
                         if (j > 59 && clientUser.VoiceChannel != null)
                         {
                             await context.Channel.SendMessageAsync("`Disconnected due to inactivity.`");
+                            Global.Logs.Add(new Log("LOG", "`Disconnected due to inactivity.`"));
 
                             await clientUser.VoiceChannel.DisconnectAsync();
                         }
@@ -145,7 +150,7 @@ namespace Discord_Bot.Modules.Commands.Audio
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "AudioService.cs Check_Connection", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "AudioService.cs ConnectBot", ex.ToString()));
             }
             return false;
         }
@@ -153,10 +158,10 @@ namespace Discord_Bot.Modules.Commands.Audio
 
 
         //Embed making for song request in voice chat
-        public static async Task RequestEmbed(SocketCommandContext context)
+        public static async Task RequestEmbed(SocketCommandContext context, ulong sId)
         {
-            MusicRequest request = Global.servers[context.Guild.Id].MusicRequests.Last();
-            int count = Global.servers[context.Guild.Id].MusicRequests.Count;
+            MusicRequest request = Global.servers[sId].MusicRequests.Last();
+            int count = Global.servers[sId].MusicRequests.Count;
 
             //Embed builder for queued songs
             EmbedBuilder builder = new();

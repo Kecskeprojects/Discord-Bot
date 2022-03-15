@@ -34,7 +34,7 @@ namespace Discord_Bot.Modules
             youtube_API_Keys = Array.Empty<string>()
         };
 
-        public async Task PopulateConfig()
+        public ConfigHandler()
         {
             string configPath = Path.Combine(Directory.GetCurrentDirectory(), "Assets\\config.json").Replace(@"\", @"\\");
 
@@ -50,8 +50,6 @@ namespace Discord_Bot.Modules
 
             using StreamReader reader = new(configPath);
             conf = JsonConvert.DeserializeObject<Config>(reader.ReadToEnd());
-
-            await Task.CompletedTask;
         }
 
         public string Token { get { return conf.token; } }

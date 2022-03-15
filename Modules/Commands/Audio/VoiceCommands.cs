@@ -8,7 +8,7 @@ using Discord_Bot.Modules.ListClasses;
 
 namespace Discord_Bot.Modules.Commands.Audio
 {
-    public class VoiceCommands : ModuleBase<SocketCommandContext>
+    public class VoiceCommands : ModuleBase<SocketCommandContext>, Interfaces.IVoiceCommands
     {
         //
         //VOICE CHAT COMMANDS
@@ -21,18 +21,21 @@ namespace Discord_Bot.Modules.Commands.Audio
         {
             try
             {
-                if (Global.IsMusicChannel(Context) == false) return;
                 ulong sId = Context.Guild.Id;
+
+                if (Global.IsMusicChannel(Context) == false) return;
 
                 if (!Global.servers[sId].AudioVars.Playing)
                 {
-                    Console.WriteLine(content);
                     Global.servers[sId].AudioVars.Playing = true;
+
                     await AudioFunctions.RequestHandler(Context, content);
+
                     if (Global.servers[sId].MusicRequests.Count > 0)
                     {
                         await AudioFunctions.PlayHandler(Context, sId);
                     }
+
                     Global.servers[sId].AudioVars.Playing = false;
                 }
                 else
@@ -65,16 +68,16 @@ namespace Discord_Bot.Modules.Commands.Audio
         [Command("leave")]
         public async Task Leave()
         {
-            if (Global.IsMusicChannel(Context) == false) return;
-
             ulong sId = Context.Guild.Id;
+
+            if (Global.IsMusicChannel(Context) == false) return;
 
             Global.servers[sId].MusicRequests.Clear();
 
-            Global.servers[sId].AudioVars.JoinedVoice = false;
-
             var clientUser = await Context.Channel.GetUserAsync(Context.Client.CurrentUser.Id);
             await (clientUser as IGuildUser).VoiceChannel.DisconnectAsync();
+
+            Global.servers[sId].AudioVars.JoinedVoice = false;
         }
 
 
@@ -103,10 +106,10 @@ namespace Discord_Bot.Modules.Commands.Audio
                 i++;
             }
 
-            int minute = time / 60;
-            int hour = minute / 60;
-            int sec = time - minute * 60;
-            builder.AddField("Full duration:", (hour > 0 ? (hour + "h" + (minute - hour * 60) + "m" + sec + "s") : (minute + "m" + sec + "s")), true);
+            int hour = time / 3600;
+            int minute = time / 60 - hour * 60; ;
+            int second = time - minute * 60 - hour * 3600;
+            builder.AddField("Full duration:", "" + (hour > 0 ? hour + "h" : "") + minute + "m" + second + "s", true);
 
             builder.WithTimestamp(DateTime.Now);
             builder.WithColor(Color.Blue);
@@ -126,10 +129,10 @@ namespace Discord_Bot.Modules.Commands.Audio
 
             int elapsed = Convert.ToInt32(Global.servers[sId].AudioVars.Stopwatch.Elapsed.TotalSeconds);
             int hour = elapsed / 3600;
-            int min = elapsed / 60 - hour * 60;
-            int second = elapsed - min * 60 - hour * 3600;
+            int minute = elapsed / 60 - hour * 60;
+            int second = elapsed - minute * 60 - hour * 3600;
 
-            string elapsed_time = (hour != 0 ? "" + hour + "h" + min + "m" + second + "s" : "" + min + "m" + second + "s");
+            string elapsed_time = "" + (hour > 0 ? hour + "h" : "") + minute + "m" + second + "s";
 
             await AudioFunctions.NpEmbed(Context, Global.servers[sId].MusicRequests[0], elapsed_time);
         }
@@ -141,9 +144,9 @@ namespace Discord_Bot.Modules.Commands.Audio
         {
             try
             {
-                if (Global.IsMusicChannel(Context) == false) return;
-
                 ulong sId = Context.Guild.Id;
+
+                if (Global.IsMusicChannel(Context) == false || Global.servers[sId].MusicRequests.Count == 0) return;
 
                 Global.servers[sId].MusicRequests.Clear();
 
@@ -168,13 +171,14 @@ namespace Discord_Bot.Modules.Commands.Audio
         {
             try
             {
-                if (Global.IsMusicChannel(Context) == false) return;
-
                 ulong sId = Context.Guild.Id;
 
-                await Context.Channel.SendMessageAsync("Song skipped!");
+                if (Global.IsMusicChannel(Context) == false || Global.servers[sId].MusicRequests.Count == 0) return;
 
-                if (Global.servers[sId].MusicRequests.Count > 0)
+                await Context.Channel.SendMessageAsync("Song skipped!");
+                Global.Logs.Add(new Log("LOG", "Song skipped!"));
+
+                if (Global.servers[sId].MusicRequests.Count > 1)
                 {
                     Console.WriteLine("Next song found!");
                     Global.Logs.Add(new Log("LOG", "Next song found!"));
@@ -203,14 +207,11 @@ namespace Discord_Bot.Modules.Commands.Audio
         {
             ulong sId = Context.Guild.Id;
 
-            if (!Global.IsMusicChannel(Context) || position == 0 || position >= Global.servers[sId].MusicRequests.Count) return;
+            if (!Global.IsMusicChannel(Context) || position < 1 || position >= Global.servers[sId].MusicRequests.Count) return;
 
-            MusicRequest item = Global.servers[sId].MusicRequests.ElementAt(position);
-            if (item != null)
-            {
-                await ReplyAsync("`" + item.Title + "`" + "has been removed from the playlist!");
-                Global.servers[sId].MusicRequests.Remove(item);
-            }
+            await ReplyAsync("`" + Global.servers[sId].MusicRequests[position].Title + "` has been removed from the playlist!");
+            Global.Logs.Add(new Log("LOG", "`" + Global.servers[sId].MusicRequests[position].Title + "` has been removed from the playlist!"));
+            Global.servers[sId].MusicRequests.RemoveAt(position);
         }
     }
 }

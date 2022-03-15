@@ -37,7 +37,7 @@ namespace Discord_Bot.Modules.API
             catch(Exception ex)
             {
                 Console.WriteLine("Something went wrong!\n" + ex.ToString());
-                Global.Logs.Add(new Log("ERROR", "Twitch_api.cs Twitch", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "TwitchAPI.cs Twitch", ex.ToString()));
                 Global.Logs.Add(new Log("DEV", ex.Message));
             }
         }
@@ -52,7 +52,7 @@ namespace Discord_Bot.Modules.API
 
             API = new TwitchLib.Api.TwitchAPI();
 
-            API.Settings.ClientId = Program.Config.Twitch_Client_Id;
+            API.Settings.ClientId = Global.Config.Twitch_Client_Id;
             API.Settings.AccessToken = Token;
 
             Monitor = new LiveStreamMonitorService(API);

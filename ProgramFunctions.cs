@@ -12,7 +12,7 @@ namespace Discord_Bot
     public class ProgramFunctions
     {
         //Check the list of custom commands on the server
-        public static async Task<bool> Custom_Commands(SocketCommandContext context)
+        public static async Task<bool> CustomCommands(SocketCommandContext context)
         {
             try
             {
@@ -28,7 +28,7 @@ namespace Discord_Bot
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Custom_Commands", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "ProgramFunctions.cs CustomCommands", ex.ToString()));
             }
             return false;
         }
@@ -36,7 +36,7 @@ namespace Discord_Bot
         
 
         //Add/Remove roles from users, and keep the role chat clean
-        public static async Task Self_role(SocketCommandContext context)
+        public static async Task SelfRole(SocketCommandContext context)
         {
             try
             {
@@ -79,14 +79,14 @@ namespace Discord_Bot
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Self_role", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "ProgramFunctions.cs SelfRole", ex.ToString()));
             }
         }
 
 
 
         //Check for messages starting with I think and certain Keywords
-        public static async Task Feature_Check(SocketCommandContext context)
+        public static async Task FeatureCheck(SocketCommandContext context)
         {
             try
             {
@@ -113,7 +113,7 @@ namespace Discord_Bot
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Feature_Check", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "ProgramFunctions.cs FeatureCheck", ex.ToString()));
             }
         }
     }

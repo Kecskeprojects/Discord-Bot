@@ -6,6 +6,7 @@ namespace Discord_Bot.Modules.ListClasses
     {
         public string Content { get; set; }
 
+
         public Log(string type, string message, string error = "")
         {
             type = type.ToUpper();

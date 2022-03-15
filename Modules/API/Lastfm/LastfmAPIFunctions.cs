@@ -10,7 +10,7 @@ namespace Discord_Bot.Modules.API.Lastfm
     public class LastfmFunctions
     {
         //Checking the total plays of a user using the topartist part of the api, as it has the least amount of entries in any case
-        public static async Task<int> TotalPlays(string name, string period)
+        protected static async Task<int> TotalPlays(string name, string period)
         {
             int page = 1, totalpage, totalplays = 0;
             do
@@ -75,10 +75,11 @@ namespace Discord_Bot.Modules.API.Lastfm
 
 
 
+        //The main request handling function
         static readonly RestClient _client = new("http://ws.audioscrobbler.com/2.0/");
-        public static async Task<RestResponse> RequestHandler(string type, string name, int limit = 0, int page = 0, string period = "")
+        protected static async Task<RestResponse> RequestHandler(string type, string name, int limit = 0, int page = 0, string period = "")
         {
-            string request_string = $"?method={type}&user={name}&api_key={Program.Config.Lastfm_API_Key}";
+            string request_string = $"?method={type}&user={name}&api_key={Global.Config.Lastfm_API_Key}";
 
             if (limit != 0) request_string += $"&limit={limit}";
             if (page != 0) request_string += $"&page={page}";

@@ -96,7 +96,7 @@ namespace Discord_Bot.Modules.Commands
                 builder.WithTitle("List of Commands");
 
                 foreach (var item in commands) { builder.AddField(item.Key, item.Value, false); }
-                builder.WithThumbnailUrl(Program.Config.Img);
+                builder.WithThumbnailUrl(Global.Config.Img);
                 builder.WithColor(Color.Orange);
 
                 await ReplyAsync("", false, builder.Build());
