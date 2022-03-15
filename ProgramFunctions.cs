@@ -100,11 +100,14 @@ namespace Discord_Bot
                     }
                 }
 
-                var row = DBFunctions.KeywordGet(context.Guild.Id, context.Message.Content.Replace("\'", ""));
-                if (row != null)
+                if(context.Message.Content.Length <= 100)
                 {
-                    await context.Channel.SendMessageAsync(row[2].ToString());
-                    return;
+                    var row = DBFunctions.KeywordGet(context.Guild.Id, context.Message.Content.Replace("\'" , "").Replace("\"", "").Replace("`", ""));
+                    if (row != null)
+                    {
+                        await context.Channel.SendMessageAsync(row[2].ToString());
+                        return;
+                    }
                 }
             }
             catch (Exception ex)
