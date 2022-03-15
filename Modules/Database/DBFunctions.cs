@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 
 namespace Discord_Bot.Modules.Database
 {
@@ -124,6 +125,12 @@ namespace Discord_Bot.Modules.Database
         public static int LastfmRemove(ulong userId)
         {
             return Delete($"DELETE FROM `lastfm` WHERE `userId` = '{userId}';");
+        }
+
+
+        public static Tuple<int, DataTable, string> ManualDBManagement(string query)
+        {
+            return Manual(query);
         }
     }
 }

@@ -62,13 +62,12 @@ namespace Discord_Bot.Modules.Database
             try
             {
                 SQLiteCommand sqlite_cmd;
-                SQLiteDataReader reader;
 
                 sqlite_cmd = Sqlite_conn.CreateCommand();
 
                 sqlite_cmd.CommandText = query;
 
-                results.Load(reader = sqlite_cmd.ExecuteReader());
+                results.Load(sqlite_cmd.ExecuteReader());
             }
             catch (Exception ex)
             {
@@ -101,6 +100,36 @@ namespace Discord_Bot.Modules.Database
             }
 
             return affected_rows;
+        }
+
+        protected static  Tuple<int, DataTable, string> Manual(string query)
+        {
+            int affected_rows = -1;
+            DataTable table = new();
+            string Error = "";
+
+            try
+            {
+                SQLiteCommand sqlite_cmd;
+
+                sqlite_cmd = Sqlite_conn.CreateCommand();
+
+                sqlite_cmd.CommandText = query;
+
+                SQLiteDataReader reader = sqlite_cmd.ExecuteReader();
+
+                affected_rows = reader.RecordsAffected;
+                table.Load(reader);
+            }
+            catch (Exception ex)
+            {
+                Error = ex.ToString();
+                Console.WriteLine(ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "Management.cs Delete", ex.ToString()));
+            }
+
+            return new Tuple<int, DataTable, string>(affected_rows, table, Error);
         }
 
         protected static void OpenConnection(object sender, StateChangeEventArgs e)

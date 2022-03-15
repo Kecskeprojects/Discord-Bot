@@ -6,6 +6,8 @@ using Discord.Commands;
 using System.IO;
 using Discord_Bot.Modules.ListClasses;
 using Discord_Bot.Modules.Database;
+using System.Data;
+using System.Text;
 
 namespace Discord_Bot.Modules.Commands
 {
@@ -424,6 +426,66 @@ namespace Discord_Bot.Modules.Commands
                 await Context.Message.DeleteAsync();
 
                 await channel.SendMessageAsync(text);
+            }
+        }
+
+
+
+        //Manual SQL queries, sends file to text channel if it is a SELECT command
+        [Command("dbmanagement")]
+        [RequireOwner]
+        public async Task DBManagement([Remainder] string query)
+        {
+            Tuple<int, DataTable, string> result = DBFunctions.ManualDBManagement(query);
+
+            int affected_rows = result.Item1;
+            DataTable table = result.Item2;
+            string Error = result.Item3;
+
+            if (Error != "")
+            {
+                await ReplyAsync(result.Item3);
+            }
+            else if (table.Rows.Count < 1)
+            {
+                await ReplyAsync("Number of affected rows: " + affected_rows);
+            }
+            else
+            {
+                int maxwidth = table.Columns.Count;
+                string text = "";
+
+                foreach (DataColumn item in table.Columns)
+                {
+                    if (text != "") text += ";";
+                    text += item.ColumnName;
+                }
+                text += "\n";
+
+                foreach (DataRow row in table.Rows)
+                {
+                    for (int i = 0; i < maxwidth; i++)
+                    {
+                        if (!text.EndsWith("\n")) text += ";";
+                        text += row[i].ToString();
+                    }
+                    text += "\n";
+                }
+
+                try
+                {
+                    StreamWriter writer = new($"Assets\\{table.TableName}.txt", false, Encoding.UTF8);
+                    writer.WriteLine(text);
+                    writer.Close();
+                    await Context.Channel.SendFileAsync($"Assets\\{table.TableName}.txt");
+                    File.Delete($"Assets\\{table.TableName}.txt");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    Global.Logs.Add(new Log("DEV", ex.Message));
+                    Global.Logs.Add(new Log("ERROR", "AdminCommands.cs DBManagement", ex.ToString()));
+                }
             }
         }
 

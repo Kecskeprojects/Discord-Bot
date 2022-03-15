@@ -61,6 +61,11 @@ namespace Discord_Bot.Modules.Interfaces
         public Task Say(IMessageChannel channel, [Remainder] string text);
 
 
+        [Command("dbmanagement")]
+        [RequireOwner]
+        public Task DBManagement([Remainder] string query);
+
+
         [Command("greeting add")]
         [RequireOwner]
         public Task GreetingAdd(string url);

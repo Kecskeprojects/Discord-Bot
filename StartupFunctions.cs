@@ -83,26 +83,36 @@ namespace Discord_Bot
 
 
         //Check if database exists
-        //Currently copies sql files, later, it should copy a backup, and only use database.sql if there are no other options
+        //Try copying a backup if any are available, otherwise make a new db file using the provided sql file
         public static void DBCheck()
         {
             try
             {
                 if (!File.Exists("database.db"))
                 {
-                    Sqlite_conn.Open();
+                    string[] array = Directory.GetFiles("Assets\\Data");
+                    if (array.Length > 0)
+                    {
+                        File.Copy(Directory.GetCurrentDirectory() + "\\" + array.Last(), "database.db");
+                        Console.WriteLine("Newest backup copied!");
+                        Global.Logs.Add(new Log("LOG", "Newest backup copied!"));
+                    }
+                    else
+                    {
+                        Sqlite_conn.Open();
 
-                    SQLiteCommand sqlite_cmd;
+                        SQLiteCommand sqlite_cmd;
 
-                    sqlite_cmd = Sqlite_conn.CreateCommand();
+                        sqlite_cmd = Sqlite_conn.CreateCommand();
 
-                    sqlite_cmd.CommandText = File.ReadAllText("database.sql");
-                    sqlite_cmd.ExecuteNonQuery();
+                        sqlite_cmd.CommandText = File.ReadAllText("database.sql");
+                        sqlite_cmd.ExecuteNonQuery();
 
-                    sqlite_cmd.CommandText = File.ReadAllText("database insert.sql");
-                    sqlite_cmd.ExecuteNonQuery();
+                        Console.WriteLine("No backups available, new db file made from sql file!");
+                        Global.Logs.Add(new Log("LOG", "No backups available, new db file made from sql file!"));
 
-                    Sqlite_conn.Close();
+                        Sqlite_conn.Close();
+                    }
                 }
 
                 Sqlite_conn.Open();
