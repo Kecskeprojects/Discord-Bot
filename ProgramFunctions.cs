@@ -100,7 +100,7 @@ namespace Discord_Bot
                     }
                 }
 
-                var row = DBFunctions.KeywordGet(context.Guild.Id, context.Message.Content);
+                var row = DBFunctions.KeywordGet(context.Guild.Id, context.Message.Content.Replace("\'", ""));
                 if (row != null)
                 {
                     await context.Channel.SendMessageAsync(row[2].ToString());

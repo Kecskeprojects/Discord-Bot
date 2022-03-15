@@ -24,6 +24,9 @@ namespace Discord_Bot.Modules.Database
             }
             catch(Exception ex)
             {
+                Console.WriteLine(query);
+                Global.Logs.Add(new Log("LOG", query));
+
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Management.cs Insert", ex.ToString()));
@@ -47,6 +50,9 @@ namespace Discord_Bot.Modules.Database
             }
             catch (Exception ex)
             {
+                Console.WriteLine(query);
+                Global.Logs.Add(new Log("LOG", query));
+
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Management.cs Update", ex.ToString()));
@@ -71,6 +77,9 @@ namespace Discord_Bot.Modules.Database
             }
             catch (Exception ex)
             {
+                Console.WriteLine(query);
+                Global.Logs.Add(new Log("LOG", query));
+
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Management.cs Read", ex.ToString()));
@@ -94,6 +103,9 @@ namespace Discord_Bot.Modules.Database
             }
             catch (Exception ex)
             {
+                Console.WriteLine(query);
+                Global.Logs.Add(new Log("LOG", query));
+
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "Management.cs Delete", ex.ToString()));
@@ -123,6 +135,9 @@ namespace Discord_Bot.Modules.Database
             }
             catch (Exception ex)
             {
+                Console.WriteLine(query);
+                Global.Logs.Add(new Log("LOG", query));
+
                 Error = ex.ToString();
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
