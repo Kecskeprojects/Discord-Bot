@@ -12,16 +12,15 @@ namespace Discord_Bot
     public class ProgramFunctions
     {
         //Check the list of custom commands on the server
-        public static async Task<bool> CustomCommands(SocketCommandContext context)
+        public static async Task CustomCommands(SocketCommandContext context)
         {
             try
             {
                 var row = DBFunctions.CustomCommandGet(context.Guild.Id, context.Message.Content[1..].ToLower());
 
-                if (DBFunctions.CustomCommandGet(context.Guild.Id, context.Message.Content[1..].ToLower()) != null) 
+                if (row != null) 
                 {
                     await context.Message.Channel.SendMessageAsync(row[2].ToString());
-                    return true;
                 }
             }
             catch (Exception ex)
@@ -30,7 +29,6 @@ namespace Discord_Bot
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "ProgramFunctions.cs CustomCommands", ex.ToString()));
             }
-            return false;
         }
 
         

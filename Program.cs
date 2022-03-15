@@ -191,13 +191,16 @@ namespace Discord_Bot
                 {
                     if (result.ErrorReason == "Unknown command.") 
                     {
-                        if (await ProgramFunctions.CustomCommands(context)) return;
+                        await ProgramFunctions.CustomCommands(context);
+                        return;
                     }
+                    else
+                    {
+                        Console.WriteLine(result.ErrorReason);
+                        if (result.Error.Equals(CommandError.UnmetPrecondition)) await message.Channel.SendMessageAsync(result.ErrorReason);
 
-                    Console.WriteLine(result.ErrorReason);
-                    if (result.Error.Equals(CommandError.UnmetPrecondition)) await message.Channel.SendMessageAsync(result.ErrorReason);
-
-                    Global.Logs.Add(new Log("ERROR", "Program.cs HandleCommandAsync", result.Error.ToString()));
+                        Global.Logs.Add(new Log("ERROR", "Program.cs HandleCommandAsync", result.Error.ToString()));
+                    }
                 }
             }
             else if(Global.servers[context.Guild.Id].RoleChannel == context.Channel.Id)
