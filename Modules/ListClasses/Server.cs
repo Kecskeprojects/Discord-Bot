@@ -20,7 +20,7 @@ namespace Discord_Bot.Modules.ListClasses
 
         public bool TwitchOnline { get; set; }
 
-        public MusicVariables AudioVars { get; set; }
+        public AudioVars AudioVars { get; set; }
 
         public List<MusicRequest> MusicRequests { get; set; }
 
@@ -38,7 +38,7 @@ namespace Discord_Bot.Modules.ListClasses
             TNotifChannel = 0;
             TNotifRole = 0;
             TwitchOnline = false;
-            AudioVars = new() { Playing = false, JoinedVoice = false };
+            AudioVars = new() { Playing = false};
             MusicRequests = new List<MusicRequest>();
         }
         
@@ -55,7 +55,7 @@ namespace Discord_Bot.Modules.ListClasses
                 TNotifChannel = ulong.Parse(row[5].ToString());
                 TNotifRole = ulong.Parse(row[6].ToString());
                 TwitchOnline = false;
-                AudioVars = new() { Playing = false, JoinedVoice = false };
+                AudioVars = new() { Playing = false};
                 MusicRequests = new List<MusicRequest>();
             }
         }

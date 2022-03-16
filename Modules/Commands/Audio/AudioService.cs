@@ -35,9 +35,11 @@ namespace Discord_Bot.Modules.Commands.Audio
                         Console.WriteLine("[" + Global.Current_Time() + "]: Audio stream starting!");
                         Global.Logs.Add(new Log("LOG", "Audio stream starting!"));
 
-                        try { await Global.servers[sId].AudioVars.Output.CopyToAsync(Global.servers[sId].AudioVars.Discord); }
-                        finally { await Global.servers[sId].AudioVars.Discord.FlushAsync(); }
+                        await Global.servers[sId].AudioVars.Output.CopyToAsync(Global.servers[sId].AudioVars.Discord);
+                        await Global.servers[sId].AudioVars.Discord.FlushAsync();
                     };
+
+                    Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
 
                     //In case youtube-dl comes back with an exit code of 1,
                     //Do not exit the loop, in any other case, exit the loop,
@@ -48,7 +50,6 @@ namespace Discord_Bot.Modules.Commands.Audio
                         Global.Logs.Add(new Log("WARNING", "Something went wrong with the ffmpeg process! EXIT CODE: " + Global.servers[sId].AudioVars.FFmpeg.ExitCode + " Tries: " + (count + 1)));
                         if (Global.servers[sId].AudioVars.FFmpeg.ExitCode == 1)
                         {
-                            Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
                             count++;
                         }
                         else break;
@@ -61,17 +62,18 @@ namespace Discord_Bot.Modules.Commands.Audio
             {
                 Console.WriteLine("Exception throw when skipping song!");
                 Global.Logs.Add(new Log("LOG", "Exception throw when skipping song!"));
-                Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
             }
-            catch(Exception ex)
+            //Exception thrown when bot abruptly leaves voice channel
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "AudioService.cs Stream", ex.ToString()));
             }
 
-            Global.servers[sId].AudioVars.Stopwatch.Stop();
             Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
+            Global.servers[sId].AudioVars.Stopwatch.Stop();
             count = 0;
 
             Console.WriteLine("[" + Global.Current_Time() + "]: Audio stream finished!");

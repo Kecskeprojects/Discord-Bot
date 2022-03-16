@@ -47,10 +47,7 @@ namespace Discord_Bot.Modules.Commands.Audio
         //Handling the continuous playing of audio
         public static async Task PlayHandler(SocketCommandContext context, ulong sId)
         {
-            //Check connection
-            if (!await ConnectBot(context, sId)) return;
-
-            while (Global.servers[sId].MusicRequests.Count > 0)
+            while (Global.servers[sId].MusicRequests.Count > 0 && await ConnectBot(context, sId))
             {
                 MusicRequest current = Global.servers[sId].MusicRequests[0];
 
@@ -73,7 +70,7 @@ namespace Discord_Bot.Modules.Commands.Audio
                     Global.Logs.Add(new Log("LOG", "Playlist empty!"));
 
                     //In case counter reached it's limit, disconnect
-                    int j = 0; 
+                    int j = 0;
                     IGuildUser clientUser;
                     while (Global.servers[sId].MusicRequests.Count == 0 && j < 60)
                     {
@@ -82,7 +79,8 @@ namespace Discord_Bot.Modules.Commands.Audio
                         clientUser = await context.Channel.GetUserAsync(context.Client.CurrentUser.Id) as IGuildUser;
                         if (clientUser.VoiceChannel == null)
                         {
-                            Global.servers[sId].AudioVars.JoinedVoice = false;
+                            Console.WriteLine("Bot not in voice channel anymore!");
+                            Global.Logs.Add(new Log("LOG", "Bot not in voice channel anymore!"));
                             break;
                         }
 
@@ -91,10 +89,9 @@ namespace Discord_Bot.Modules.Commands.Audio
 
                     //In case counter reached it's limit, disconnect,
                     //or if the bot disconnected for some other reason, leave the loop and clear the request list
-                    if (j > 59 || Global.servers[sId].AudioVars.JoinedVoice == false)
+                    clientUser = await context.Channel.GetUserAsync(context.Client.CurrentUser.Id) as IGuildUser;
+                    if (j > 59 || clientUser.VoiceChannel == null)
                     {
-                        clientUser = await context.Channel.GetUserAsync(context.Client.CurrentUser.Id) as IGuildUser;
-
                         if (j > 59 && clientUser.VoiceChannel != null)
                         {
                             await context.Channel.SendMessageAsync("`Disconnected due to inactivity.`");
@@ -120,14 +117,14 @@ namespace Discord_Bot.Modules.Commands.Audio
             {
                 var clientUser = await context.Channel.GetUserAsync(context.Client.CurrentUser.Id) as IGuildUser;
 
-                if (Global.servers[sId].AudioVars.JoinedVoice == false)
+                IVoiceChannel channel = (context.User as SocketGuildUser).VoiceChannel;
+
+                if (clientUser.VoiceChannel == null || clientUser.VoiceChannel != channel)
                 {
                     if(clientUser.VoiceChannel != null) 
                     {
                         await clientUser.VoiceChannel.DisconnectAsync(); 
                     }
-
-                    IVoiceChannel channel = (context.User as SocketGuildUser).VoiceChannel;
 
                     if(channel != null)
                     {
@@ -135,7 +132,6 @@ namespace Discord_Bot.Modules.Commands.Audio
 
                         if (Global.servers[sId].AudioVars.AudioClient != null)
                         {
-                            Global.servers[sId].AudioVars.JoinedVoice = true;
                             return true;
                         }
                     }

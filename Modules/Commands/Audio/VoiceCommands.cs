@@ -27,13 +27,22 @@ namespace Discord_Bot.Modules.Commands.Audio
 
                 if (!Global.servers[sId].AudioVars.Playing)
                 {
+                    Global.servers[sId].MusicRequests.Clear();
+
                     Global.servers[sId].AudioVars.Playing = true;
 
                     await AudioFunctions.RequestHandler(Context, content);
 
                     if (Global.servers[sId].MusicRequests.Count > 0)
                     {
-                        await AudioFunctions.PlayHandler(Context, sId);
+                        try
+                        {
+                            await AudioFunctions.PlayHandler(Context, sId);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
                     }
 
                     Global.servers[sId].AudioVars.Playing = false;
@@ -57,9 +66,11 @@ namespace Discord_Bot.Modules.Commands.Audio
         [Command("join")]
         public async Task Join()
         {
+            ulong sId = Context.Guild.Id;
+
             if (Global.IsMusicChannel(Context) == false) { return; }
 
-            await AudioFunctions.ConnectBot(Context, Context.Guild.Id);
+            await AudioFunctions.ConnectBot(Context, sId);
         }
 
 
@@ -77,7 +88,8 @@ namespace Discord_Bot.Modules.Commands.Audio
             var clientUser = await Context.Channel.GetUserAsync(Context.Client.CurrentUser.Id);
             await (clientUser as IGuildUser).VoiceChannel.DisconnectAsync();
 
-            Global.servers[sId].AudioVars.JoinedVoice = false;
+            Global.servers[sId].AudioVars.FFmpeg.Kill();
+            Global.servers[sId].AudioVars.Output.Dispose();
         }
 
 
@@ -105,7 +117,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
                 i++;
             }
-
+            
             int hour = time / 3600;
             int minute = time / 60 - hour * 60; ;
             int second = time - minute * 60 - hour * 3600;
@@ -152,6 +164,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
                 await Context.Channel.SendMessageAsync("The queue has been cleared!");
                 Global.Logs.Add(new Log("LOG", "The queue has been cleared!"));
+
                 Global.servers[sId].AudioVars.FFmpeg.Kill();
                 Global.servers[sId].AudioVars.Output.Dispose();
             }
@@ -178,16 +191,6 @@ namespace Discord_Bot.Modules.Commands.Audio
                 await Context.Channel.SendMessageAsync("Song skipped!");
                 Global.Logs.Add(new Log("LOG", "Song skipped!"));
 
-                if (Global.servers[sId].MusicRequests.Count > 1)
-                {
-                    Console.WriteLine("Next song found!");
-                    Global.Logs.Add(new Log("LOG", "Next song found!"));
-                }
-                else
-                {
-                    Console.WriteLine("Empty list!");
-                    Global.Logs.Add(new Log("LOG", "Empty list!"));
-                }
                 Global.servers[sId].AudioVars.FFmpeg.Kill();
                 Global.servers[sId].AudioVars.Output.Dispose();
             }
@@ -211,6 +214,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
             await ReplyAsync("`" + Global.servers[sId].MusicRequests[position].Title + "` has been removed from the playlist!");
             Global.Logs.Add(new Log("LOG", "`" + Global.servers[sId].MusicRequests[position].Title + "` has been removed from the playlist!"));
+
             Global.servers[sId].MusicRequests.RemoveAt(position);
         }
     }

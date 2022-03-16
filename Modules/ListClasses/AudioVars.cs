@@ -4,11 +4,9 @@ using System.IO;
 
 namespace Discord_Bot.Modules.ListClasses
 {
-    public class MusicVariables
+    public class AudioVars
     {
         public bool Playing { get; set; }
-
-        public bool JoinedVoice { get; set; }
 
         public IAudioClient AudioClient { get; set; }
 
@@ -21,6 +19,6 @@ namespace Discord_Bot.Modules.ListClasses
         public Stopwatch Stopwatch { get; set; }
 
 
-        public MusicVariables() { }
+        public AudioVars() { }
     }
 }
