@@ -18,27 +18,36 @@ namespace Discord_Bot.Modules.Commands.Audio
         //1 : Playlist found
         public static async Task RequestHandler(SocketCommandContext context, string input)
         {
-            if (input == "") return;
+            try
+            {
+                if (input == "") return;
 
-            input = input.Replace("<", "").Replace(">", "");
+                input = input.Replace("<", "").Replace(">", "");
 
-            //In case of a spotify link, do a spotify API query before the youtube API query
-            int result;
-            if (input.Contains("spotify")) result = API.SpotifyAPI.SpotifySearch(context, input);
-            else result = YoutubeAPI.Searching(context, input);
+                //In case of a spotify link, do a spotify API query before the youtube API query
+                int result;
+                if (input.Contains("spotify")) result = API.SpotifyAPI.SpotifySearch(context, input);
+                else result = YoutubeAPI.Searching(context, input);
 
-            //If search results come back empty, return
-            if (result < 0) 
-            { 
-                await context.Channel.SendMessageAsync("No results found!");
-                Global.Logs.Add(new Log("LOG", "No results found!"));
-                return; 
+                //If search results come back empty, return
+                if (result < 0)
+                {
+                    await context.Channel.SendMessageAsync("No results found!");
+                    Global.Logs.Add(new Log("LOG", "No results found!"));
+                    return;
+                }
+
+                //Make embedded message if result was not a playlist and it's not the first song
+                if (result != 1 && Global.servers[context.Guild.Id].MusicRequests.Count > 1)
+                {
+                    await RequestEmbed(context, context.Guild.Id);
+                }
             }
-
-            //Make embedded message if result was not a playlist and it's not the first song
-            if (result != 1 && Global.servers[context.Guild.Id].MusicRequests.Count > 1) 
-            { 
-                await RequestEmbed(context, context.Guild.Id); 
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "AudioService.cs RequestHandler", ex.ToString()));
             }
         }
 
@@ -47,64 +56,82 @@ namespace Discord_Bot.Modules.Commands.Audio
         //Handling the continuous playing of audio
         public static async Task PlayHandler(SocketCommandContext context, ulong sId)
         {
-            while (Global.servers[sId].MusicRequests.Count > 0 && await ConnectBot(context, sId))
+            try
             {
-                MusicRequest current = Global.servers[sId].MusicRequests[0];
+                if (!await ConnectBot(context, sId)) return;
 
-                await context.Channel.SendMessageAsync("Now Playing:\n`" + current.Title + "`");
-                Global.Logs.Add(new Log("LOG", "Now Playing:\n`" + current.Title + "`"));
-
-                //Streaming the music
-                await Stream(context, Global.servers[sId].AudioVars.AudioClient, current.URL.Split('&')[0]);
-
-                //Deleting the finished song if the list was not cleared for some other reason
-                if(Global.servers[sId].MusicRequests.Count > 0)
+                while (Global.servers[sId].MusicRequests.Count > 0)
                 {
-                    Global.servers[sId].MusicRequests.RemoveAt(0);
-                }
+                    MusicRequest current = Global.servers[sId].MusicRequests[0];
 
-                //If the playlist is empty and there is no song playing, start counting down for 60 seconds
-                if (Global.servers[sId].MusicRequests.Count == 0)
-                {
-                    Console.WriteLine("Playlist empty!");
-                    Global.Logs.Add(new Log("LOG", "Playlist empty!"));
+                    await context.Channel.SendMessageAsync("Now Playing:\n`" + current.Title + "`");
+                    Global.Logs.Add(new Log("LOG", "Now Playing:\n`" + current.Title + "`"));
 
-                    //In case counter reached it's limit, disconnect
-                    int j = 0;
-                    IGuildUser clientUser;
-                    while (Global.servers[sId].MusicRequests.Count == 0 && j < 60)
+                    //Streaming the music
+                    await Stream(context, Global.servers[sId].AudioVars.AudioClient, current.URL.Split('&')[0]);
+
+                    //Deleting the finished song if the list was not cleared for some other reason
+                    if (Global.servers[sId].MusicRequests.Count > 0)
                     {
-                        j++;
+                        Global.servers[sId].MusicRequests.RemoveAt(0);
+                    }
 
-                        clientUser = await context.Channel.GetUserAsync(context.Client.CurrentUser.Id) as IGuildUser;
-                        if (clientUser.VoiceChannel == null)
+                    //If the playlist is empty and there is no song playing, start counting down for 60 seconds
+                    if (Global.servers[sId].MusicRequests.Count == 0)
+                    {
+                        Console.WriteLine("Playlist empty!");
+                        Global.Logs.Add(new Log("LOG", "Playlist empty!"));
+
+                        //In case counter reached it's limit, disconnect
+                        int j = 0;
+                        IGuildUser clientUser;
+                        while (Global.servers[sId].MusicRequests.Count == 0 && j < 60)
                         {
-                            Console.WriteLine("Bot not in voice channel anymore!");
-                            Global.Logs.Add(new Log("LOG", "Bot not in voice channel anymore!"));
+                            j++;
+
+                            clientUser = await context.Channel.GetUserAsync(context.Client.CurrentUser.Id) as IGuildUser;
+                            if (clientUser.VoiceChannel == null)
+                            {
+                                Console.WriteLine("Bot not in voice channel anymore!");
+                                Global.Logs.Add(new Log("LOG", "Bot not in voice channel anymore!"));
+                                break;
+                            }
+
+                            await Task.Delay(1000);
+                        }
+
+                        //In case counter reached it's limit, disconnect,
+                        //or if the bot disconnected for some other reason, leave the loop and clear the request list
+                        clientUser = await context.Channel.GetUserAsync(context.Client.CurrentUser.Id) as IGuildUser;
+                        if (j > 59 || clientUser.VoiceChannel == null)
+                        {
+                            if (j > 59 && clientUser.VoiceChannel != null)
+                            {
+                                await context.Channel.SendMessageAsync("`Disconnected due to inactivity.`");
+                                Global.Logs.Add(new Log("LOG", "`Disconnected due to inactivity.`"));
+
+                                await clientUser.VoiceChannel.DisconnectAsync();
+                            }
+
+                            Global.servers[sId].MusicRequests.Clear();
+
                             break;
                         }
-
-                        await Task.Delay(1000);
-                    }
-
-                    //In case counter reached it's limit, disconnect,
-                    //or if the bot disconnected for some other reason, leave the loop and clear the request list
-                    clientUser = await context.Channel.GetUserAsync(context.Client.CurrentUser.Id) as IGuildUser;
-                    if (j > 59 || clientUser.VoiceChannel == null)
-                    {
-                        if (j > 59 && clientUser.VoiceChannel != null)
-                        {
-                            await context.Channel.SendMessageAsync("`Disconnected due to inactivity.`");
-                            Global.Logs.Add(new Log("LOG", "`Disconnected due to inactivity.`"));
-
-                            await clientUser.VoiceChannel.DisconnectAsync();
-                        }
-
-                        Global.servers[sId].MusicRequests.Clear();
-
-                        break;
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                var clientUser = await context.Channel.GetUserAsync(context.Client.CurrentUser.Id) as IGuildUser;
+                if (clientUser.VoiceChannel != null)
+                {
+                    Global.Logs.Add(new Log("LOG", "`Disconnected due to Error.`"));
+                    await clientUser.VoiceChannel.DisconnectAsync();
+                }
+
+                Console.WriteLine(ex);
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "AudioService.cs PlayHandler", ex.ToString()));
             }
         }
 
@@ -119,27 +146,24 @@ namespace Discord_Bot.Modules.Commands.Audio
 
                 IVoiceChannel channel = (context.User as SocketGuildUser).VoiceChannel;
 
-                if (clientUser.VoiceChannel == null || clientUser.VoiceChannel != channel)
+                if (clientUser.VoiceChannel != null)
                 {
-                    if(clientUser.VoiceChannel != null) 
-                    {
-                        await clientUser.VoiceChannel.DisconnectAsync(); 
-                    }
+                    await clientUser.VoiceChannel.DisconnectAsync();
+                }
 
-                    if(channel != null)
-                    {
-                        Global.servers[sId].AudioVars.AudioClient = await channel.ConnectAsync();
+                if (channel != null)
+                {
+                    Global.servers[sId].AudioVars.AudioClient = await channel.ConnectAsync();
 
-                        if (Global.servers[sId].AudioVars.AudioClient != null)
-                        {
-                            return true;
-                        }
-                    }
-                    else
+                    if (Global.servers[sId].AudioVars.AudioClient != null)
                     {
-                        Console.WriteLine("User must be in a voice channel, or a voice channel must be passed as an argument!");
-                        Global.Logs.Add(new Log("LOG", "User must be in a voice channel, or a voice channel must be passed as an argument!"));
+                        return true;
                     }
+                }
+                else
+                {
+                    Console.WriteLine("User must be in a voice channel, or a voice channel must be passed as an argument!");
+                    Global.Logs.Add(new Log("LOG", "User must be in a voice channel, or a voice channel must be passed as an argument!"));
                 }
             }
             catch (Exception ex)

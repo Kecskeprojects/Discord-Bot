@@ -35,8 +35,11 @@ namespace Discord_Bot.Modules.Commands.Audio
                         Console.WriteLine("[" + Global.Current_Time() + "]: Audio stream starting!");
                         Global.Logs.Add(new Log("LOG", "Audio stream starting!"));
 
-                        await Global.servers[sId].AudioVars.Output.CopyToAsync(Global.servers[sId].AudioVars.Discord);
-                        await Global.servers[sId].AudioVars.Discord.FlushAsync();
+                        try
+                        {
+                            await Global.servers[sId].AudioVars.Output.CopyToAsync(Global.servers[sId].AudioVars.Discord);
+                        }
+                        finally { await Global.servers[sId].AudioVars.Discord.FlushAsync(); }
                     };
 
                     Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
