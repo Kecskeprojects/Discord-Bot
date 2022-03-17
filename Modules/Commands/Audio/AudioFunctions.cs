@@ -192,7 +192,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
             builder.WithThumbnailUrl(request.Thumbnail);
 
-            builder.AddField("Song duration:", request.Duration.ToLower(), true);
+            builder.AddField("Song duration:", request.Duration[2..].ToLower(), true);
 
             builder.AddField("Position in queue:", count - 1, true);
 
@@ -215,7 +215,7 @@ namespace Discord_Bot.Modules.Commands.Audio
             builder.WithThumbnailUrl(item.Thumbnail);
 
             builder.AddField("Requested by:", item.User, false);
-            builder.AddField("Song duration:", elapsed_time + " / " + item.Duration.ToLower(), false);
+            builder.AddField("Song duration:", elapsed_time + " / " + item.Duration[2..].ToLower(), false);
 
             builder.WithTimestamp(DateTime.Now);
             builder.WithColor(Color.DarkBlue);

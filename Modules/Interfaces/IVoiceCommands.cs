@@ -18,7 +18,7 @@ namespace Discord_Bot.Modules.Interfaces
 
 
         [Command("queue")]
-        public Task Queue();
+        public Task Queue(int index);
 
 
         [Command("np")]

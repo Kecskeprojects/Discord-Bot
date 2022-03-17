@@ -96,7 +96,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
         //Current music request queue
         [Command("queue")]
-        public async Task Queue()
+        public async Task Queue(int index = 1)
         {
             ulong sId = Context.Guild.Id;
 
@@ -105,12 +105,15 @@ namespace Discord_Bot.Modules.Commands.Audio
             //Embed builder for queued songs
             EmbedBuilder builder = new();
 
-            int time = 0, i = 0;
-            foreach (MusicRequest item in Global.servers[sId].MusicRequests.ToList())
-            {
-                if (i == 0) { builder.WithTitle("Currently Playing:\n" + item.Title + "\nRequested by:  " + item.User); builder.WithUrl(item.URL); builder.WithThumbnailUrl(item.Thumbnail); }
+            int time = 0;
 
-                else if (i < 10) { builder.AddField(i + ".  " + item.Title, "Requested by:  " + item.User, false); }
+            for (int i = (index - 1) * 10; i < Global.servers[sId].MusicRequests.Count; i++)
+            {
+                MusicRequest item = Global.servers[sId].MusicRequests[i];
+
+                if (i == (index - 1) * 10) { builder.WithTitle("Currently Playing:\n" + item.Title + "\nRequested by:  " + item.User); builder.WithUrl(item.URL); builder.WithThumbnailUrl(item.Thumbnail); }
+
+                else if (i < index + 10) { builder.AddField(i + ".  " + item.Title, "Requested by:  " + item.User, false); }
 
                 TimeSpan youTubeDuration = XmlConvert.ToTimeSpan(item.Duration);
                 time += Convert.ToInt32(youTubeDuration.TotalSeconds);
@@ -118,6 +121,8 @@ namespace Discord_Bot.Modules.Commands.Audio
                 i++;
             }
             
+            if(time == 0) return;
+
             int hour = time / 3600;
             int minute = time / 60 - hour * 60; ;
             int second = time - minute * 60 - hour * 3600;

@@ -35,9 +35,30 @@ namespace Discord_Bot.Modules.API
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
-                Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "YoutubeAPI.cs Searching", ex.ToString()));
+                //switching api keys if quota is exceeded
+                if (ex.ToString().Contains("quotaExceeded") && keys.Count != 0)
+                {
+                    var current_key = Global.Config.Youtube_API_Keys[youtube_index];
+
+                    keys.Remove(current_key);
+
+                    Random r = new();
+
+                    youtube_index = r.Next(0, keys.Count);
+                    current_key = Global.Config.Youtube_API_Keys[youtube_index];
+
+                    Console.WriteLine("Key switched out to key in " + youtube_index + " position, value: " + current_key + "!");
+                    Global.Logs.Add(new Log("LOG", "Key switched out to key in " + youtube_index + " position, value: " + current_key + "!"));
+
+                    int result = new YoutubeAPI().Run(context, query).GetAwaiter().GetResult();
+                    return result;
+                }
+                else
+                {
+                    Console.WriteLine(ex.ToString());
+                    Global.Logs.Add(new Log("DEV", ex.Message));
+                    Global.Logs.Add(new Log("ERROR", "YoutubeAPI.cs Searching", ex.ToString()));
+                }
             }
             return -1;
         }
@@ -48,20 +69,6 @@ namespace Discord_Bot.Modules.API
         private async Task<int> Run(SocketCommandContext context, string query)
         {
             var current_key = Global.Config.Youtube_API_Keys[youtube_index];
-
-            //switching api keys
-            if (keys[current_key] >= 9900)
-            {
-                keys.Remove(current_key);
-
-                Random r = new();
-
-                youtube_index = r.Next(0, keys.Count);
-                current_key = Global.Config.Youtube_API_Keys[youtube_index];
-
-                Console.WriteLine("Key switched out to key in " + youtube_index + " position, value: " + current_key + "!");
-                Global.Logs.Add(new Log("LOG", "Key switched out to key in " + youtube_index + " position, value: " + current_key + "!"));
-            }
 
             var youtubeService = new YouTubeService(new BaseClientService.Initializer()
             {
