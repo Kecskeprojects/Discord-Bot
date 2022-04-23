@@ -10,7 +10,6 @@ namespace Discord_Bot.Modules.Commands.Audio
     public class AudioService
     {
         //After CreateYoutubeStream ran, send the audio over to discord, with the given audio settings
-        static int count = 0;
         public static async Task Stream(SocketCommandContext context, IAudioClient client, string url)
         {
             ulong sId = context.Guild.Id;
@@ -22,7 +21,8 @@ namespace Discord_Bot.Modules.Commands.Audio
                 //Looping in case video could not play correctly the first time
                 //In most cases, it only runs once, this is done for edge cases,
                 //to a maximum of 3 loops, which seems to be more than enough
-                while (true)
+                int count = 0;
+                while (count < 3)
                 {
                     Global.servers[sId].AudioVars.FFmpeg = CreateYoutubeStream(url);
                     Global.servers[sId].AudioVars.Output = Global.servers[sId].AudioVars.FFmpeg.StandardOutput.BaseStream;
@@ -35,11 +35,8 @@ namespace Discord_Bot.Modules.Commands.Audio
                         Console.WriteLine("[" + Global.Current_Time() + "]: Audio stream starting!");
                         Global.Logs.Add(new Log("LOG", "Audio stream starting!"));
 
-                        try
-                        {
-                            await Global.servers[sId].AudioVars.Output.CopyToAsync(Global.servers[sId].AudioVars.Discord);
-                        }
-                        finally { await Global.servers[sId].AudioVars.Discord.FlushAsync(); }
+                        await Global.servers[sId].AudioVars.Output.CopyToAsync(Global.servers[sId].AudioVars.Discord);
+                        await Global.servers[sId].AudioVars.Discord.FlushAsync();
                     };
 
                     Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
@@ -54,10 +51,10 @@ namespace Discord_Bot.Modules.Commands.Audio
                         if (Global.servers[sId].AudioVars.FFmpeg.ExitCode == 1)
                         {
                             count++;
+                            continue;
                         }
-                        else break;
                     }
-                    else break;
+                    break;
                 }
             }
             //Exception thrown with current version of skipping song
@@ -67,7 +64,12 @@ namespace Discord_Bot.Modules.Commands.Audio
                 Global.Logs.Add(new Log("LOG", "Exception throw when skipping song!"));
             }
             //Exception thrown when bot abruptly leaves voice channel
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException ex)
+            {
+                Console.WriteLine("Exception thrown when audio stream is cancelled!");
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "AudioService.cs Stream", ex.ToString()));
+            }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
@@ -75,9 +77,11 @@ namespace Discord_Bot.Modules.Commands.Audio
                 Global.Logs.Add(new Log("ERROR", "AudioService.cs Stream", ex.ToString()));
             }
 
-            Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
+            if (Global.servers[sId].AudioVars.FFmpeg.HasExited)
+            {
+                Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
+            }
             Global.servers[sId].AudioVars.Stopwatch.Stop();
-            count = 0;
 
             Console.WriteLine("[" + Global.Current_Time() + "]: Audio stream finished!");
             Global.Logs.Add(new Log("LOG", "Audio stream finished!"));

@@ -20,7 +20,7 @@ namespace Discord_Bot.Modules.Commands.Audio
         {
             try
             {
-                if (input == "") return;
+                if (input == "" || (context.User as SocketGuildUser).VoiceChannel == null) return;
 
                 input = input.Replace("<", "").Replace(">", "");
 
@@ -45,7 +45,7 @@ namespace Discord_Bot.Modules.Commands.Audio
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "AudioService.cs RequestHandler", ex.ToString()));
             }
@@ -62,13 +62,27 @@ namespace Discord_Bot.Modules.Commands.Audio
 
                 while (Global.servers[sId].MusicRequests.Count > 0)
                 {
+                    if((await context.Channel.GetUserAsync(context.Client.CurrentUser.Id) as IGuildUser).VoiceChannel == null)
+                    {
+                        if (!await ConnectBot(context, sId)) return;
+                    }
+
                     MusicRequest current = Global.servers[sId].MusicRequests[0];
 
                     await context.Channel.SendMessageAsync("Now Playing:\n`" + current.Title + "`");
-                    Global.Logs.Add(new Log("LOG", "Now Playing:\n`" + current.Title + "`"));
+                    Global.Logs.Add(new Log("LOG", "Now Playing: `" + current.Title + "`"));
 
                     //Streaming the music
-                    await Stream(context, Global.servers[sId].AudioVars.AudioClient, current.URL.Split('&')[0]);
+                    try
+                    {
+                        await Stream(context, Global.servers[sId].AudioVars.AudioClient, current.URL.Split('&')[0]);
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                        Global.Logs.Add(new Log("DEV", ex.Message));
+                        Global.Logs.Add(new Log("ERROR", "AudioFunctions.cs PlayHandler", ex.ToString()));
+                    }
 
                     //Deleting the finished song if the list was not cleared for some other reason
                     if (Global.servers[sId].MusicRequests.Count > 0)
@@ -129,7 +143,7 @@ namespace Discord_Bot.Modules.Commands.Audio
                     await clientUser.VoiceChannel.DisconnectAsync();
                 }
 
-                Console.WriteLine(ex);
+                Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "AudioService.cs PlayHandler", ex.ToString()));
             }

@@ -27,25 +27,19 @@ namespace Discord_Bot.Modules.Commands.Audio
 
                 if (!Global.servers[sId].AudioVars.Playing)
                 {
-                    Global.servers[sId].MusicRequests.Clear();
-
                     Global.servers[sId].AudioVars.Playing = true;
 
                     await AudioFunctions.RequestHandler(Context, content);
 
                     if (Global.servers[sId].MusicRequests.Count > 0)
                     {
-                        try
-                        {
-                            await AudioFunctions.PlayHandler(Context, sId);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex);
-                        }
+                        await AudioFunctions.PlayHandler(Context, sId);
                     }
 
                     Global.servers[sId].AudioVars.Playing = false;
+
+                    Global.servers[sId].AudioVars = new AudioVars();
+                    Global.servers[sId].MusicRequests.Clear();
                 }
                 else
                 {
@@ -102,36 +96,45 @@ namespace Discord_Bot.Modules.Commands.Audio
 
             if (Global.IsMusicChannel(Context) == false || Global.servers[sId].MusicRequests.Count == 0) return;
 
-            //Embed builder for queued songs
-            EmbedBuilder builder = new();
+            int songcount = Global.servers[sId].MusicRequests.Count;
 
-            int time = 0;
-
-            for (int i = (index - 1) * 10; i < Global.servers[sId].MusicRequests.Count; i++)
+            //If queue does not have songs on that page, do not show a queue
+            if (index * 10 <= songcount || ((index -1) * 10 < songcount && index * 10 >= songcount))
             {
-                MusicRequest item = Global.servers[sId].MusicRequests[i];
+                //Embed builder for queued songs
+                EmbedBuilder builder = new();
 
-                if (i == (index - 1) * 10) { builder.WithTitle("Currently Playing:\n" + item.Title + "\nRequested by:  " + item.User); builder.WithUrl(item.URL); builder.WithThumbnailUrl(item.Thumbnail); }
+                int time = 0;
+                for (int i = 0; i < Global.servers[sId].MusicRequests.Count; i++)
+                {
+                    MusicRequest item = Global.servers[sId].MusicRequests[i];
 
-                else if (i < index + 10) { builder.AddField(i + ".  " + item.Title, "Requested by:  " + item.User, false); }
+                    if (i == 0)
+                    {
+                        builder.WithTitle("Currently Playing:\n" + item.Title + "\nRequested by:  " + item.User);
+                        builder.WithUrl(item.URL);
+                        builder.WithThumbnailUrl(item.Thumbnail);
+                    }
 
-                TimeSpan youTubeDuration = XmlConvert.ToTimeSpan(item.Duration);
-                time += Convert.ToInt32(youTubeDuration.TotalSeconds);
+                    else if (i <= index * 10 && i > (index - 1) * 10) 
+                    { 
+                        builder.AddField(i + ".  " + item.Title, "Requested by:  " + item.User, false); 
+                    }
 
-                i++;
+                    TimeSpan youTubeDuration = XmlConvert.ToTimeSpan(item.Duration);
+                    time += Convert.ToInt32(youTubeDuration.TotalSeconds);
+                }
+
+                int hour = time / 3600;
+                int minute = time / 60 - hour * 60; ;
+                int second = time - minute * 60 - hour * 3600;
+                builder.AddField("Full duration:", "" + (hour > 0 ? hour + "h" : "") + minute + "m" + second + "s", true);
+
+                builder.WithTimestamp(DateTime.Now);
+                builder.WithColor(Color.Blue);
+
+                await ReplyAsync("", false, builder.Build());
             }
-            
-            if(time == 0) return;
-
-            int hour = time / 3600;
-            int minute = time / 60 - hour * 60; ;
-            int second = time - minute * 60 - hour * 3600;
-            builder.AddField("Full duration:", "" + (hour > 0 ? hour + "h" : "") + minute + "m" + second + "s", true);
-
-            builder.WithTimestamp(DateTime.Now);
-            builder.WithColor(Color.Blue);
-
-            await ReplyAsync("", false, builder.Build());
         }
 
 
