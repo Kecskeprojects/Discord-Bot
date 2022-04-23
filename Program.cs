@@ -66,7 +66,10 @@ namespace Discord_Bot
         //Main Service
         public async Task RunBotAsync()
         {
-            _client = new DiscordSocketClient(new DiscordSocketConfig() { LogGatewayIntentWarnings = false, LogLevel = LogSeverity.Info });
+            _client = new DiscordSocketClient(
+                new DiscordSocketConfig() {GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildBans | GatewayIntents.GuildEmojis | GatewayIntents.GuildIntegrations | 
+                                           GatewayIntents.GuildWebhooks | GatewayIntents.GuildVoiceStates | GatewayIntents.GuildMessages | GatewayIntents.GuildMessageReactions | 
+                                           GatewayIntents.GuildMessageTyping | GatewayIntents.DirectMessages | GatewayIntents.DirectMessageReactions | GatewayIntents.DirectMessageTyping });
             _commands = new CommandService(new CommandServiceConfig() { DefaultRunMode = RunMode.Async });
             _services = new ServiceCollection()
                 .AddSingleton(_client)
@@ -105,11 +108,18 @@ namespace Discord_Bot
                 switch (arg.Exception.Message)
                 {
                     case "Server requested a reconnect":
-                    case "WebSocket connection was closed":
-                    case "WebSocket session expired":
                     {
                             Console.WriteLine(arg.Exception.Message + "!");
                             Global.Logs.Add(new Log("CLIENT", arg.Exception.Message + "!"));
+                            break;
+                    }
+                    case "WebSocket connection was closed":
+                    case "WebSocket session expired":
+                        {
+                            Console.WriteLine(arg.Exception.Message + "!");
+                            Global.Logs.Add(new Log("CLIENT", arg.Exception.Message + "!"));
+                            Global.Logs.Add(new Log("DEV", arg.Exception.ToString()));
+                            Global.Logs.Add(new Log("DEV", arg.ToString()));
                             break;
                     }
                     default:
@@ -123,7 +133,7 @@ namespace Discord_Bot
             }
             else
             {
-                Console.WriteLine(arg);
+                Console.WriteLine(arg.ToString());
                 Global.Logs.Add(new Log("CLIENT", arg.ToString()));
             }
             return Task.CompletedTask;
@@ -184,7 +194,6 @@ namespace Discord_Bot
             if(message.HasCharPrefix('!', ref argPos))
             {
                 var result = await _commands.ExecuteAsync(context, argPos, _services);
-                Console.WriteLine(result.ErrorReason);
 
                 //In case there is no such hard coded command, check the list of custom commands
                 if (!result.IsSuccess)
@@ -221,7 +230,7 @@ namespace Discord_Bot
                     var table = DBFunctions.AllGreeting();
                     if (table.Rows.Count > 0)
                     {
-                        await message.Channel.SendMessageAsync(table.Rows[new Random().Next(0, table.Rows.Count)][0].ToString());
+                        await message.Channel.SendMessageAsync(table.Rows[new Random().Next(0, table.Rows.Count)][1].ToString());
                     }
                 }
                 //Responses to triggers
