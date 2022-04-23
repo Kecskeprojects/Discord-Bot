@@ -33,9 +33,14 @@ namespace Discord_Bot.Modules.Database
         }
 
 
-        public static int ServerSettingUpdate(string channelType, ulong channelId)
+        public static int ServerSettingUpdate(string channelType, ulong channelId, ulong serverId)
         {
-            return Update($"UPDATE `serversetting` SET `{channelType}` = '{channelId}';");
+            return Update($"UPDATE `serversetting` SET `{channelType}` = '{channelId}' WHERE `serverId` = '{serverId}';");
+        }
+
+        public static int ServerSettingTwitchUpdate(string ChannelId, string ChannelURL, ulong serverId)
+        {
+            return Update($"UPDATE `serversetting` SET `tChannelId` = '{ChannelId}', `tChannelLink` = '{ChannelURL}' WHERE `serverId` = '{serverId}';");
         }
 
 

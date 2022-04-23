@@ -23,7 +23,7 @@ namespace Discord_Bot.Modules.Interfaces
 
         [Command("setting set")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
-        public Task SettingSet(string type, string name);
+        public Task SettingSet(string type, string name, string twitchurl = "");
 
 
         [Command("setting unset")]

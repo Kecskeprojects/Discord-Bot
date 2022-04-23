@@ -8,6 +8,7 @@ using Discord_Bot.Modules.ListClasses;
 using Discord_Bot.Modules.Database;
 using System.Data;
 using System.Text;
+using System.Diagnostics;
 
 namespace Discord_Bot.Modules.Commands
 {
@@ -100,14 +101,14 @@ namespace Discord_Bot.Modules.Commands
         //Setting modification
         [Command("setting set")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
-        public async Task SettingSet(string type, string name)
+        public async Task SettingSet(string type, string name, string twitchurl = "")
         {
             try
             {
                 IMessageChannel channel = Context.Guild.TextChannels.Where(x => x.Name.ToLower() == name).FirstOrDefault();
                 IRole role = Context.Guild.Roles.Where(x => x.Name.ToLower() == name).FirstOrDefault();
 
-                if (role != null || channel != null)
+                if (role != null || channel != null || type == "twitchchannel")
                 {
                     int affected = -1;
                     switch (type)
@@ -115,26 +116,36 @@ namespace Discord_Bot.Modules.Commands
                         //Check which kind of setting you are modifying, and then add it to database
                         case "music":
                             {
-                                affected = DBFunctions.ServerSettingUpdate("musicChannel", channel.Id);
+                                affected = DBFunctions.ServerSettingUpdate("musicChannel", channel.Id, Context.Guild.Id);
                                 if (affected > 0) Global.servers[Context.Guild.Id].MusicChannel = channel.Id;
                                 break;
                             }
                         case "role":
                             {
-                                affected = DBFunctions.ServerSettingUpdate("roleChannel", channel.Id);
+                                affected = DBFunctions.ServerSettingUpdate("roleChannel", channel.Id, Context.Guild.Id);
                                 if (affected > 0) Global.servers[Context.Guild.Id].RoleChannel = channel.Id;
                                 break;
                             }
                         case "notif":
                             {
-                                affected = DBFunctions.ServerSettingUpdate("tNotifChannel", channel.Id);
+                                affected = DBFunctions.ServerSettingUpdate("tNotifChannel", channel.Id, Context.Guild.Id);
                                 if (affected > 0) Global.servers[Context.Guild.Id].TNotifChannel = channel.Id;
                                 break;
                             }
                         case "notifrole":
                             {
-                                affected = DBFunctions.ServerSettingUpdate("tNotifRole", channel.Id);
+                                affected = DBFunctions.ServerSettingUpdate("tNotifRole", channel.Id, Context.Guild.Id);
                                 if (affected > 0) Global.servers[Context.Guild.Id].TNotifRole = role.Id;
+                                break;
+                            }
+                        case "twitchchannel":
+                            {
+                                affected = DBFunctions.ServerSettingTwitchUpdate(name, twitchurl, Context.Guild.Id);
+                                if (affected > 0)
+                                {
+                                    Global.servers[Context.Guild.Id].TChannelId = name;
+                                    Global.servers[Context.Guild.Id].TChannelLink = twitchurl;
+                                }
                                 break;
                             }
                     }
@@ -167,26 +178,36 @@ namespace Discord_Bot.Modules.Commands
                     //Check which kind of setting you are modifying, and then remove it from database
                     case "music":
                         {
-                            affected = DBFunctions.ServerSettingUpdate("musicChannel", 0);
+                            affected = DBFunctions.ServerSettingUpdate("musicChannel", 0, Context.Guild.Id);
                             if (affected > 0) Global.servers[Context.Guild.Id].MusicChannel = 0;
                             break;
                         }
                     case "role":
                         {
-                            affected = DBFunctions.ServerSettingUpdate("roleChannel", 0);
+                            affected = DBFunctions.ServerSettingUpdate("roleChannel", 0, Context.Guild.Id);
                             if (affected > 0) Global.servers[Context.Guild.Id].RoleChannel = 0;
                             break;
                         }
                     case "notif":
                         {
-                            affected = DBFunctions.ServerSettingUpdate("tNotifChannel", 0);
+                            affected = DBFunctions.ServerSettingUpdate("tNotifChannel", 0, Context.Guild.Id);
                             if (affected > 0) Global.servers[Context.Guild.Id].TNotifChannel = 0;
                             break;
                         }
                     case "notifrole":
                         {
-                            affected = DBFunctions.ServerSettingUpdate("tNotifRole", 0);
+                            affected = DBFunctions.ServerSettingUpdate("tNotifRole", 0, Context.Guild.Id);
                             if (affected > 0) Global.servers[Context.Guild.Id].TNotifRole = 0;
+                            break;
+                        }
+                    case "twitchchannel":
+                        {
+                            affected = DBFunctions.ServerSettingTwitchUpdate("", "", Context.Guild.Id);
+                            if (affected > 0)
+                            {
+                                Global.servers[Context.Guild.Id].TChannelId = "";
+                                Global.servers[Context.Guild.Id].TChannelLink = "";
+                            }
                             break;
                         }
                 }

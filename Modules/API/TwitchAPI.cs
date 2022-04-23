@@ -93,7 +93,7 @@ namespace Discord_Bot.Modules.API
 
                     EmbedBuilder builder = new();
                     builder.WithTitle("Stream is now online!");
-                    builder.AddField(e.Stream.Title, server.Value.TChannelLink, false); // true - for inline
+                    builder.AddField(e.Stream.Title, server.Value.TChannelLink, false);
                     builder.WithImageUrl(thumbnail);
                     builder.WithTimestamp(e.Stream.StartedAt);
 
@@ -112,7 +112,6 @@ namespace Discord_Bot.Modules.API
             Console.WriteLine(Global.Current_Time() + ": Stream is now offline!");
             Global.Logs.Add(new Log("QUERY", "Stream is now offline!"));
 
-            Console.WriteLine("Streamer user id test: " + e.Stream.UserId);
             foreach (var server in Global.servers)
             {
                 if (server.Value.TwitchOnline && server.Value.TChannelId == e.Stream.UserId)

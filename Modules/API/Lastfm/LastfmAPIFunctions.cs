@@ -86,7 +86,7 @@ namespace Discord_Bot.Modules.API.Lastfm
             if (period != "") request_string += $"&period={period}";
 
             request_string += "&format=json";
-
+            
             var request = new RestRequest(request_string);
             var temp = await _client.GetAsync(request);
             return temp;
