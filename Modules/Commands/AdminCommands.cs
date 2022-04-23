@@ -353,8 +353,8 @@ namespace Discord_Bot.Modules.Commands
             try
             {
                 Server server = Global.servers[Context.Guild.Id];
-                ulong[] ids = { server.MusicChannel, server.RoleChannel, server.TNotifChannel, server.TNotifRole };
-                string[] ch_names = { "none", "none", "none", "none" };
+                ulong[] ids = { server.MusicChannel, server.RoleChannel, server.TNotifChannel, server.TNotifRole};
+                string[] ch_names = { "none", "none", "none", "none"};
 
                 for (int i = 0; i < 3; i++)
                 {
@@ -372,6 +372,8 @@ namespace Discord_Bot.Modules.Commands
                 embed.AddField("Role channel:", $"`{ ch_names[1]}`");
                 embed.AddField("Notification channel:", $"`{ ch_names[2]}`");
                 embed.AddField("Notification role:", $"`{ ch_names[3]}`");
+                embed.AddField("Notified Twitch Channel Id:", $"`{ (server.TChannelId == "" ? "none" : server.TChannelId)}`");
+                embed.AddField("Notifued Twitch channel URL:", $"`{ (server.TChannelLink == "" ? "none" : server.TChannelLink) }`");
 
                 embed.WithThumbnailUrl(Global.Config.Img);
                 embed.WithTimestamp(DateTime.Now);
