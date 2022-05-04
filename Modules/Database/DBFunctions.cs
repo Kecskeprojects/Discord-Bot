@@ -132,6 +132,70 @@ namespace Discord_Bot.Modules.Database
             return Delete($"DELETE FROM `lastfm` WHERE `userId` = '{userId}';");
         }
 
+        public static DataTable BiasList()
+        {
+            var table = Read($"SELECT * FROM `bias`;");
+
+            if (table.Rows.Count > 0) { return table; }
+            else return null;
+        }
+
+        public static DataRow BiasByName(string biasName)
+        {
+            var table = Read($"SELECT `biasId` FROM `bias` WHERE `biasName` = '{biasName}';");
+
+            if (table.Rows.Count > 0) { return table.Rows[0]; }
+            else return null;
+        }
+
+        public static int BiasAdd(int biasId, string biasName)
+        {
+            return Insert($"INSERT INTO `bias` (`biasId`,`biasName`) VALUES ('{biasId}','{biasName}');");
+        }
+
+        public static int BiasRemove(string biasName)
+        {
+            return Delete($"DELETE FROM `bias` WHERE `biasName` = '{biasName}';");
+        }
+
+        public static DataTable UserBiasesList(ulong userId)
+        {
+            var table = Read($"SELECT `bias`.`biasName` AS 'biasName' FROM `userbias` INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` WHERE `userbias`.`userId` = '{userId}';");
+
+            if (table.Rows.Count > 0) { return table; }
+            else return null;
+        }
+
+        public static DataTable UserBiasCheck(ulong userId, string biasName)
+        {
+            var table = Read($"SELECT `bias`.`biasName` AS 'biasName' FROM `userbias` INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` WHERE `userbias`.`userId` = '{userId}' AND `bias`.`biasname` = '{biasName}';");
+
+            if (table.Rows.Count > 0) { return table; }
+            else return null;
+        }
+
+        public static DataTable UsersWithBiasList(string biasName)
+        {
+            var table = Read($"SELECT `userId` FROM `userbias` INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` WHERE `bias`.`biasName` = '{biasName}';");
+
+            if (table.Rows.Count > 0) { return table; }
+            else return null;
+        }
+
+        public static int UserBiasAdd(ulong userId, int biasId)
+        {
+            return Insert($"INSERT INTO `userbias` (`userId`,`biasId`) VALUES ('{userId}','{biasId}');");
+        }
+
+        public static int UserBiasRemove(int biasId, ulong userId)
+        {
+            return Delete($"DELETE FROM `userbias` WHERE `biasId` = '{biasId}' AND `userId` = '{userId}';");
+        }
+
+        public static int UserBiasClear(ulong userId)
+        {
+            return Delete($"DELETE FROM `userbias` WHERE `userId` = '{userId}';");
+        }
 
         public static Tuple<int, DataTable, string> ManualDBManagement(string query)
         {

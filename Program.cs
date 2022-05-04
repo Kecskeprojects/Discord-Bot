@@ -8,7 +8,6 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Discord_Bot.Modules;
 using Discord_Bot.Modules.API;
-using Discord_Bot.Modules.Commands;
 using Discord_Bot.Modules.Database;
 using Discord_Bot.Modules.ListClasses;
 using Microsoft.Extensions.DependencyInjection;
@@ -167,16 +166,12 @@ namespace Discord_Bot
             else Global.Logs.Add(new Log("MES_USER", message.Content));
 
 
-            //If message is a direct message, check the direct commands
-            if (context.Guild == null) { await DirectMessageHandler.Handle(context); return; }
-
-
-            //If the server is not on the list, add it to the database and the list
-            if (!Global.servers.ContainsKey(context.Guild.Id))
+            //If message is not private message, and the server is not on the list, add it to the database and the list
+            if (message.Channel.GetChannelType() != ChannelType.DM && !Global.servers.ContainsKey(context.Guild.Id))
             {
                 int affected = DBFunctions.AddNewServer(context.Guild.Id);
 
-                if(affected > 0)
+                if (affected > 0)
                 {
                     Global.servers.Add(context.Guild.Id, new Server(context.Guild.Id));
 
@@ -191,14 +186,14 @@ namespace Discord_Bot
             }
 
 
-            if(message.HasCharPrefix('!', ref argPos))
+            if (message.HasCharPrefix('!', ref argPos))
             {
                 var result = await _commands.ExecuteAsync(context, argPos, _services);
 
                 //In case there is no such hard coded command, check the list of custom commands
                 if (!result.IsSuccess)
                 {
-                    if (result.ErrorReason == "Unknown command.") 
+                    if (result.ErrorReason == "Unknown command.")
                     {
                         await ProgramFunctions.CustomCommands(context);
                         return;
@@ -212,11 +207,11 @@ namespace Discord_Bot
                     }
                 }
             }
-            else if(Global.servers[context.Guild.Id].RoleChannel == context.Channel.Id)
+            else if (message.Channel.GetChannelType() == ChannelType.Text && Global.servers[context.Guild.Id].RoleChannel == context.Channel.Id)
             {
                 await context.Message.DeleteAsync();
 
-                if(message.HasCharPrefix('+', ref argPos) || message.HasCharPrefix('-', ref argPos))
+                if (message.HasCharPrefix('+', ref argPos) || message.HasCharPrefix('-', ref argPos))
                 {
                     //self roles
                     await ProgramFunctions.SelfRole(context);
@@ -235,7 +230,7 @@ namespace Discord_Bot
                 }
                 //Responses to triggers
                 else _ = ProgramFunctions.FeatureCheck(context);
-                
+
             }
 
             await Task.CompletedTask;
