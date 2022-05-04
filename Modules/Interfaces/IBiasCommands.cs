@@ -8,10 +8,12 @@ namespace Discord_Bot.Modules.Interfaces
     {
         [Command("biaslist add")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public Task AddBiasList([Remainder] string biasName);
 
         [Command("biaslist remove")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public Task RemoveBiasList([Remainder] string biasName);
 
         [Command("bias add")]

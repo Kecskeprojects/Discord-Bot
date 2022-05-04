@@ -21,6 +21,7 @@ namespace Discord_Bot.Modules.Commands
         //Embed complete list of commands in a text file
         [Command("help admin")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public async Task Help()
         {
             try

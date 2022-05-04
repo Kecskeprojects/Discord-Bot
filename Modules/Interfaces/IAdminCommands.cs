@@ -8,6 +8,7 @@ namespace Discord_Bot.Modules.Interfaces
     {
         [Command("help admin")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public Task Help();
 
 

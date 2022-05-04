@@ -12,6 +12,7 @@ namespace Discord_Bot.Modules.Commands
     {
         [Command("biaslist add")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public async Task AddBiasList([Remainder] string biasName)
         {
             try
@@ -45,6 +46,7 @@ namespace Discord_Bot.Modules.Commands
 
         [Command("biaslist remove")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public async Task RemoveBiasList([Remainder] string biasName)
         {
             try
