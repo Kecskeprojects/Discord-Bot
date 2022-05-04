@@ -64,6 +64,7 @@ namespace Discord_Bot.Modules.Commands.Audio
                 {
                     if((await context.Channel.GetUserAsync(context.Client.CurrentUser.Id) as IGuildUser).VoiceChannel == null)
                     {
+                        await Task.Delay(1000);
                         if (!await ConnectBot(context, sId)) return;
                     }
 
@@ -90,7 +91,7 @@ namespace Discord_Bot.Modules.Commands.Audio
                         Global.servers[sId].MusicRequests.RemoveAt(0);
                     }
 
-                    //If the playlist is empty and there is no song playing, start counting down for 60 seconds
+                    //If the playlist is empty and there is no song playing, start counting down for 300 seconds
                     if (Global.servers[sId].MusicRequests.Count == 0)
                     {
                         Console.WriteLine("Playlist empty!");
@@ -99,7 +100,7 @@ namespace Discord_Bot.Modules.Commands.Audio
                         //In case counter reached it's limit, disconnect
                         int j = 0;
                         IGuildUser clientUser;
-                        while (Global.servers[sId].MusicRequests.Count == 0 && j < 60)
+                        while (Global.servers[sId].MusicRequests.Count == 0 && j < 300)
                         {
                             j++;
 
@@ -117,9 +118,9 @@ namespace Discord_Bot.Modules.Commands.Audio
                         //In case counter reached it's limit, disconnect,
                         //or if the bot disconnected for some other reason, leave the loop and clear the request list
                         clientUser = await context.Channel.GetUserAsync(context.Client.CurrentUser.Id) as IGuildUser;
-                        if (j > 59 || clientUser.VoiceChannel == null)
+                        if (j > 299 || clientUser.VoiceChannel == null)
                         {
-                            if (j > 59 && clientUser.VoiceChannel != null)
+                            if (j > 299 && clientUser.VoiceChannel != null)
                             {
                                 await context.Channel.SendMessageAsync("`Disconnected due to inactivity.`");
                                 Global.Logs.Add(new Log("LOG", "`Disconnected due to inactivity.`"));
