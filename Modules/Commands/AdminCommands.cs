@@ -8,7 +8,6 @@ using Discord_Bot.Modules.ListClasses;
 using Discord_Bot.Modules.Database;
 using System.Data;
 using System.Text;
-using System.Diagnostics;
 
 namespace Discord_Bot.Modules.Commands
 {
@@ -43,6 +42,7 @@ namespace Discord_Bot.Modules.Commands
         //Custom command adding, gifs and pics mainly
         [Command("command add")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public async Task CommandAdd(string name, string link)
         {
             try
@@ -77,6 +77,7 @@ namespace Discord_Bot.Modules.Commands
         //Custom command removing, gifs and pics mainly
         [Command("command remove")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public async Task CommandRemove(string name)
         {
             try
@@ -101,6 +102,7 @@ namespace Discord_Bot.Modules.Commands
         //Setting modification
         [Command("setting set")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public async Task SettingSet(string type, string name, string twitchurl = "")
         {
             try
@@ -168,6 +170,7 @@ namespace Discord_Bot.Modules.Commands
         //Setting removal
         [Command("setting unset")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public async Task SettingUnset(string type)
         {
             try
@@ -228,6 +231,7 @@ namespace Discord_Bot.Modules.Commands
         //Adding self role to database
         [Command("self role add")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public async Task SelfRoleAdd(string name)
         {
             try
@@ -264,6 +268,7 @@ namespace Discord_Bot.Modules.Commands
         //Removing self rome from database
         [Command("self role remove")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public async Task SelfRoleRemove(string name)
         {
             try
@@ -293,6 +298,7 @@ namespace Discord_Bot.Modules.Commands
         //Keyword list modification
         [Command("keyword add")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public async Task KeywordAdd([Remainder] string keyword_response)
         {
             try
@@ -324,6 +330,7 @@ namespace Discord_Bot.Modules.Commands
         //Keyword removal
         [Command("keyword remove")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public async Task KeywordRemove(string keyword)
         {
             try
@@ -348,6 +355,7 @@ namespace Discord_Bot.Modules.Commands
         //Lists server settings
         [Command("server settings")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public async Task ServerSettings()
         {
             try
@@ -398,7 +406,11 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                int id = DBFunctions.AllGreeting().Rows.Count + 1;
+                var result = DBFunctions.AllGreeting();
+
+                int id;
+                if (result == null) id = 1;
+                else id = int.Parse(result.Rows[^1][0].ToString()) + 1;
 
                 if (DBFunctions.GreetingAdd(id, url) > 0)
                 {
@@ -442,6 +454,7 @@ namespace Discord_Bot.Modules.Commands
         //Command for owner, the bot says in whatever channel you gave it what you told it to say
         [Command("say")]
         [RequireOwner]
+        [RequireContext(ContextType.Guild)]
         public async Task Say(IMessageChannel channel, [Remainder] string text)
         {
             if (Context.Guild.TextChannels.Contains(channel))
@@ -515,8 +528,9 @@ namespace Discord_Bot.Modules.Commands
 
 
         //Test to see if bot is responsive
-        [Command("ping")]
+        [Command("game ping")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public async Task Ping() { await ReplyAsync("pong"); }
     }
 }

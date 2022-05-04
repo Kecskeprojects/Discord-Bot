@@ -35,6 +35,7 @@ namespace Discord_Bot.Modules.Commands
 
         //Command to list out all the currently available commands
         [Command("custom list")]
+        [RequireContext(ContextType.Guild)]
         public async Task CustomList()
         {
             try

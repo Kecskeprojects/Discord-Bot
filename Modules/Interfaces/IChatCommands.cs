@@ -9,6 +9,7 @@ namespace Discord_Bot.Modules.Interfaces
         public Task Eightball([Remainder] string question);
 
         [Command("custom list")]
+        [RequireContext(ContextType.Guild)]
         public Task CustomList();
 
         [Command("help")]

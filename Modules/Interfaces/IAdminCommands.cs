@@ -13,51 +13,61 @@ namespace Discord_Bot.Modules.Interfaces
 
         [Command("command add")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public Task CommandAdd(string name, string link);
 
 
         [Command("command remove")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public Task CommandRemove(string name);
 
 
         [Command("setting set")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public Task SettingSet(string type, string name, string twitchurl = "");
 
 
         [Command("setting unset")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public Task SettingUnset(string type);
 
 
         [Command("self role add")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public Task SelfRoleAdd(string name);
 
 
         [Command("self role remove")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public Task SelfRoleRemove(string name);
 
 
         [Command("keyword add")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public Task KeywordAdd([Remainder] string keyword_response);
 
 
         [Command("keyword remove")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public Task KeywordRemove(string keyword);
 
 
         [Command("server settings")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public Task ServerSettings();
 
 
         [Command("say")]
         [RequireOwner]
+        [RequireContext(ContextType.Guild)]
         public Task Say(IMessageChannel channel, [Remainder] string text);
 
 
@@ -76,8 +86,9 @@ namespace Discord_Bot.Modules.Interfaces
         public Task GreetingRemove(int id);
 
 
-        [Command("ping")]
+        [Command("game ping")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
         public Task Ping();
     }
 }

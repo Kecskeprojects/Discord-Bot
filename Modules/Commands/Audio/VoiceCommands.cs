@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using System.Xml;
 using Discord;
 using Discord.Commands;
-using System.Linq;
 using Discord_Bot.Modules.ListClasses;
 
 namespace Discord_Bot.Modules.Commands.Audio
@@ -17,6 +16,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
         //Play music on the channel the user is connected to
         [Command("p")]
+        [RequireContext(ContextType.Guild)]
         public async Task Play([Remainder] string content)
         {
             try
@@ -58,6 +58,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
         //Joins the bot to the user's voice channel
         [Command("join")]
+        [RequireContext(ContextType.Guild)]
         public async Task Join()
         {
             ulong sId = Context.Guild.Id;
@@ -71,6 +72,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
         //Leaves the current voice channel
         [Command("leave")]
+        [RequireContext(ContextType.Guild)]
         public async Task Leave()
         {
             ulong sId = Context.Guild.Id;
@@ -90,6 +92,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
         //Current music request queue
         [Command("queue")]
+        [RequireContext(ContextType.Guild)]
         public async Task Queue(int index = 1)
         {
             ulong sId = Context.Guild.Id;
@@ -141,6 +144,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
         //The currently playing song
         [Command("np")]
+        [RequireContext(ContextType.Guild)]
         public async Task Now_Playing()
         {
             ulong sId = Context.Guild.Id;
@@ -160,6 +164,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
         //Clear playlist and leave voice channel
         [Command("clear")]
+        [RequireContext(ContextType.Guild)]
         public async Task Clear()
         {
             try
@@ -188,6 +193,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
         //Skip current song
         [Command("skip")]
+        [RequireContext(ContextType.Guild)]
         public async Task Skip()
         {
             try
@@ -214,6 +220,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
         //Removes the song at the given position
         [Command("remove")]
+        [RequireContext(ContextType.Guild)]
         public async Task Remove(int position)
         {
             ulong sId = Context.Guild.Id;
