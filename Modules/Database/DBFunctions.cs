@@ -5,6 +5,10 @@ namespace Discord_Bot.Modules.Database
 {
     public class DBFunctions: DBManagement
     {
+        //
+        //GREETING database commands
+        //
+
         public static DataTable AllGreeting()
         {
             return Read("SELECT * FROM `greeting`;");
@@ -20,6 +24,10 @@ namespace Discord_Bot.Modules.Database
             return Delete($"DELETE FROM `greeting` WHERE `id` = '{id}';");
         }
 
+
+        //
+        //SERVERSETTING database commands
+        //
 
         public static DataTable AllServerSetting()
         {
@@ -43,6 +51,10 @@ namespace Discord_Bot.Modules.Database
             return Update($"UPDATE `serversetting` SET `tChannelId` = '{ChannelId}', `tChannelLink` = '{ChannelURL}' WHERE `serverId` = '{serverId}';");
         }
 
+
+        //
+        //CUSTOMCOMMAND database commands
+        //
 
         public static DataTable AllCustomCommand(ulong serverId)
         {
@@ -71,6 +83,10 @@ namespace Discord_Bot.Modules.Database
         }
 
 
+        //
+        //SELFROLE database commands
+        //
+
         public static DataRow SelfRoleGet(ulong serverId, string name)
         {
             var table = Read($"SELECT * FROM `customcommand` WHERE `command` = '{name}' AND `serverId` = '{serverId}'");
@@ -91,6 +107,10 @@ namespace Discord_Bot.Modules.Database
             return Delete($"DELETE FROM `customcommand` WHERE `command` = '{roleName}' AND `serverId` = '{serverId}';");
         }
 
+
+        //
+        //KEYWORD database commands
+        //
 
         public static DataRow KeywordGet(ulong serverId, string trigger)
         {
@@ -113,6 +133,10 @@ namespace Discord_Bot.Modules.Database
         }
 
 
+        //
+        //LASTFM database commands
+        //
+
         public static DataRow LastfmGet(ulong userId)
         {
             var table = Read($"SELECT * FROM `lastfm` WHERE `userId` = '{userId}';");
@@ -132,6 +156,11 @@ namespace Discord_Bot.Modules.Database
             return Delete($"DELETE FROM `lastfm` WHERE `userId` = '{userId}';");
         }
 
+
+        //
+        //BIASLIST database commands
+        //
+
         public static DataTable BiasList()
         {
             var table = Read($"SELECT * FROM `bias`;");
@@ -139,6 +168,7 @@ namespace Discord_Bot.Modules.Database
             if (table.Rows.Count > 0) { return table; }
             else return null;
         }
+
 
         public static DataRow BiasByName(string biasName)
         {
@@ -148,15 +178,22 @@ namespace Discord_Bot.Modules.Database
             else return null;
         }
 
+
         public static int BiasAdd(int biasId, string biasName)
         {
             return Insert($"INSERT INTO `bias` (`biasId`,`biasName`) VALUES ('{biasId}','{biasName}');");
         }
 
+
         public static int BiasRemove(string biasName)
         {
             return Delete($"DELETE FROM `bias` WHERE `biasName` = '{biasName}';");
         }
+
+
+        //
+        //USERBIAS database commands
+        //
 
         public static DataTable UserBiasesList(ulong userId)
         {
@@ -166,6 +203,7 @@ namespace Discord_Bot.Modules.Database
             else return null;
         }
 
+
         public static DataTable UserBiasCheck(ulong userId, string biasName)
         {
             var table = Read($"SELECT `bias`.`biasName` AS 'biasName' FROM `userbias` INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` WHERE `userbias`.`userId` = '{userId}' AND `bias`.`biasname` = '{biasName}';");
@@ -174,6 +212,7 @@ namespace Discord_Bot.Modules.Database
             else return null;
         }
 
+
         public static DataTable UsersWithBiasList(string biasName)
         {
             var table = Read($"SELECT `userId` FROM `userbias` INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` WHERE `bias`.`biasName` = '{biasName}';");
@@ -181,6 +220,7 @@ namespace Discord_Bot.Modules.Database
             if (table.Rows.Count > 0) { return table; }
             else return null;
         }
+
 
         public static int UserBiasAdd(ulong userId, int biasId)
         {
@@ -192,10 +232,16 @@ namespace Discord_Bot.Modules.Database
             return Delete($"DELETE FROM `userbias` WHERE `biasId` = '{biasId}' AND `userId` = '{userId}';");
         }
 
+
         public static int UserBiasClear(ulong userId)
         {
             return Delete($"DELETE FROM `userbias` WHERE `userId` = '{userId}';");
         }
+
+
+        //
+        //MANUAL DB FUNCTION
+        //
 
         public static Tuple<int, DataTable, string> ManualDBManagement(string query)
         {
