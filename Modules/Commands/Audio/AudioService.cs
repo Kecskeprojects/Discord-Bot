@@ -77,7 +77,7 @@ namespace Discord_Bot.Modules.Commands.Audio
                 Global.Logs.Add(new Log("ERROR", "AudioService.cs Stream", ex.ToString()));
             }
 
-            if (Global.servers[sId].AudioVars.FFmpeg.HasExited)
+            if (!Global.servers[sId].AudioVars.FFmpeg.HasExited)
             {
                 Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
             }
