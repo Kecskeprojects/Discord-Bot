@@ -41,7 +41,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
                     Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
 
-                    //In case youtube-dl comes back with an exit code of 1,
+                    //In case yt-dlp comes back with an exit code of 1,
                     //Do not exit the loop, in any other case, exit the loop,
                     //the reason for it returning with 1 is unknown but it does it seemingly randomly
                     if (Global.servers[sId].AudioVars.FFmpeg.ExitCode != 0 && count < 3)
@@ -90,20 +90,20 @@ namespace Discord_Bot.Modules.Commands.Audio
 
 
 
-        //Use youtube-dl and ffmpeg to stream audio from youtube to discord
+        //Use yt-dlp and ffmpeg to stream audio from youtube to discord
         private static Process CreateYoutubeStream(string url)
         {
             ProcessStartInfo ffmpeg = new()
             {
                 FileName = "cmd.exe",
-                Arguments = $@"/C youtube-dl.exe --no-check-certificate -f bestaudio -o - {url} | ffmpeg.exe -i pipe:0 -f s16le -ar 48000 -ac 2 pipe:1",
+                Arguments = $@"/C yt-dlp.exe --no-check-certificate -f bestaudio -o - {url} | ffmpeg.exe -i pipe:0 -f s16le -ar 48000 -ac 2 pipe:1",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 CreateNoWindow = true
             };
 
-            Console.WriteLine("Youtube-dl audio stream created for '" + url + "' !");
-            Global.Logs.Add(new Log("LOG", "Youtube-dl audio stream created for '" + url + "' !"));
+            Console.WriteLine("Yt-dlp audio stream created for '" + url + "' !");
+            Global.Logs.Add(new Log("LOG", "Yt-dlp audio stream created for '" + url + "' !"));
             return Process.Start(ffmpeg);
         }
 
@@ -120,7 +120,7 @@ namespace Discord_Bot.Modules.Commands.Audio
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     FileName = "cmd.exe",
-                    Arguments = $@"/C youtube-dl.exe --no-check-certificate -F {url}",
+                    Arguments = $@"/C yt-dlp.exe --no-check-certificate -F {url}",
                     RedirectStandardError = true,
                     RedirectStandardOutput = true
                 }

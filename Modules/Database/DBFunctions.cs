@@ -187,7 +187,7 @@ namespace Discord_Bot.Modules.Database
 
         public static int BiasRemove(string biasName)
         {
-            return Delete($"DELETE FROM `bias` WHERE `biasName` = '{biasName}';");
+            return Delete($"DELETE FROM `userbias` WHERE `biasId`=(SELECT `biasId` FROM `bias` WHERE `biasName`='{biasName}'); DELETE FROM `bias` WHERE `biasName` = '{biasName}';");
         }
 
 
