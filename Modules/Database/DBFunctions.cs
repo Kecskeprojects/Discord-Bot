@@ -16,7 +16,7 @@ namespace Discord_Bot.Modules.Database
 
         public static int GreetingAdd(int id, string url)
         {
-            return Insert($"INSERT INTO `greeting` (`id`, `url`), ('{id}','{url}')");
+            return Insert($"INSERT INTO `greeting` (`id`, `url`) VALUES ('{id}','{url}')");
         }
 
         public static int GreetingRemove(int id)
