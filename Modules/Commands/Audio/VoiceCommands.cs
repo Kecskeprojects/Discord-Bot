@@ -107,6 +107,8 @@ namespace Discord_Bot.Modules.Commands.Audio
                 //Embed builder for queued songs
                 EmbedBuilder builder = new();
 
+                builder.WithTitle($"Queue (page {index} of {Math.Ceiling((songcount - 1) / 10.0)}):");
+
                 int time = 0;
                 for (int i = 0; i < Global.servers[sId].MusicRequests.Count; i++)
                 {
@@ -114,14 +116,14 @@ namespace Discord_Bot.Modules.Commands.Audio
 
                     if (i == 0)
                     {
-                        builder.WithTitle("Currently Playing:\n" + item.Title + "\nRequested by:  " + item.User);
-                        builder.WithUrl(item.URL);
+                        builder.AddField("\u200b", $"__Currently Playing:__\n**[{item.Title}]({item.URL})**\nRequested by:  {item.User}", false);
                         builder.WithThumbnailUrl(item.Thumbnail);
                     }
 
+                    //Check if song index is smaller than the given page's end but also larger than it is beginning
                     else if (i <= index * 10 && i > (index - 1) * 10) 
                     { 
-                        builder.AddField(i + ".  " + item.Title, "Requested by:  " + item.User, false); 
+                        builder.AddField("\u200b", $"**{i}. [{item.Title}]({item.URL})**\nRequested by:  {item.User}", false); 
                     }
 
                     TimeSpan youTubeDuration = XmlConvert.ToTimeSpan(item.Duration);
