@@ -209,13 +209,13 @@ namespace Discord_Bot
             }
             else if (message.Channel.GetChannelType() == ChannelType.Text && Global.servers[context.Guild.Id].RoleChannel == context.Channel.Id)
             {
-                await context.Message.DeleteAsync();
-
                 if (message.HasCharPrefix('+', ref argPos) || message.HasCharPrefix('-', ref argPos))
                 {
                     //self roles
-                    await ProgramFunctions.SelfRole(context);
+                    _ = ProgramFunctions.SelfRole(context);
                 }
+
+                await context.Message.DeleteAsync();
             }
             else
             {

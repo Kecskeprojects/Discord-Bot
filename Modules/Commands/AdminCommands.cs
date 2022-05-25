@@ -246,7 +246,7 @@ namespace Discord_Bot.Modules.Commands
                     if (DBFunctions.SelfRoleGet(Context.Guild.Id, name) == null)
                     {
                         //Add role to database
-                        if (DBFunctions.SelfRoleAdd(Context.Guild.Id, role.Name, role.Id) > 0) 
+                        if (DBFunctions.SelfRoleAdd(Context.Guild.Id, role.Name.ToLower(), role.Id) > 0) 
                         { 
                             await ReplyAsync($"New role successfully added: {role.Name}"); 
                         }
@@ -275,7 +275,7 @@ namespace Discord_Bot.Modules.Commands
             try
             {
                 //Find role with matching name
-                IRole role = Context.Guild.Roles.Where(x => x.Name.ToLower() == name).FirstOrDefault();
+                IRole role = Context.Guild.Roles.Where(x => x.Name.ToLower() == name.ToLower()).FirstOrDefault();
 
                 if(role != null)
                 {
