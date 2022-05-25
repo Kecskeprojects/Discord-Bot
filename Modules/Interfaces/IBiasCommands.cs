@@ -26,10 +26,10 @@ namespace Discord_Bot.Modules.Interfaces
         public Task ClearBias();
 
         [Command("my biases")]
-        public Task MyBiases();
+        public Task MyBiases([Remainder] string groupName = "");
 
         [Command("bias list")]
-        public Task BiasList();
+        public Task BiasList([Remainder] string groupName = "");
 
         [Command("ping")]
         [RequireContext(ContextType.Guild)]

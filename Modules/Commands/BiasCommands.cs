@@ -6,6 +6,7 @@ using Discord_Bot.Modules.ListClasses;
 using System;
 using System.Data;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Discord_Bot.Modules.Commands
 {
@@ -14,12 +15,15 @@ namespace Discord_Bot.Modules.Commands
         [Command("biaslist add")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
         [RequireContext(ContextType.Guild)]
-        public async Task AddBiasList([Remainder] string biasName)
+        public async Task AddBiasList([Remainder] string biasData)
         {
             try
             {
                 //Make the name lowercase and clear and accidental spaces
-                biasName = biasName.ToLower().Trim();
+                biasData = biasData.ToLower().Trim();
+
+                string biasName = biasData.Split('-')[0];
+                string biasGroup = biasData.Split('-')[1];
 
                 //Check if there is such an idol already in the database
                 if (DBFunctions.BiasByName(biasName) == null)
@@ -31,7 +35,7 @@ namespace Discord_Bot.Modules.Commands
                     else biasId = int.Parse(result.Rows[^1][0].ToString()) + 1;
 
                     //Try adding them to the database
-                    if (DBFunctions.BiasAdd(biasId, biasName) > 0)
+                    if (DBFunctions.BiasAdd(biasId, biasName, biasGroup) > 0)
                     {
                         await ReplyAsync("Bias added to list!");
                     }
@@ -152,28 +156,67 @@ namespace Discord_Bot.Modules.Commands
 
 
         [Command("my biases")]
-        public async Task MyBiases()
+        public async Task MyBiases([Remainder] string groupName = "")
         {
             try
             {
+                groupName = groupName.ToLower();
+
                 //Get your list of biases
-                var result = DBFunctions.UserBiasesList(Context.User.Id);
+                var result = DBFunctions.UserBiasesList(Context.User.Id, groupName);
 
                 //Check if you have any
                 if (result == null)
                 {
-                    await ReplyAsync("You do not have any biases set yet!");
+                    if (groupName != "") await ReplyAsync("No biases from that group are in your list!");
+                    else await ReplyAsync("You do not have any biases set yet!");
                 }
                 else
                 {
-                    //Make a list out of them
-                    string message = "Your biases:\n";
+                    Dictionary<string, string> groups = new();
                     foreach (DataRow item in result.Rows)
                     {
-                        if (message != "Your biases:\n") message += ", ";
+                        if (item[1].ToString() != "")
+                        {
+                            //Check if key exists for group, if not, make it
+                            if (!groups.ContainsKey(item[1].ToString())) groups.Add(item[1].ToString(), $"{item[1].ToString().ToUpper()}:\n");
 
-                        //We make the first character of each name capital
-                        message += $"`{char.ToUpper(item[0].ToString()[0]) + item[0].ToString()[1..]}`";
+                            //If dictionary item has been modified from default, add comma
+                            if (groups[item[1].ToString()] != $"{item[1].ToString().ToUpper()}:\n") groups[item[1].ToString()] += ", ";
+
+                            //We make the first character of each name capital
+                            groups[item[1].ToString()] += $"`{item[0].ToString().ToUpper()}`";
+                        }
+                        else
+                        {
+                            if (!groups.ContainsKey("unsorted")) groups.Add("unsorted", $"UNSORTED:\n");
+
+                            //If dictionary item has been modified from default, add comma
+                            if (groups["unsorted"] != $"UNSORTED:\n") groups["unsorted"] += ", ";
+
+                            //We make the first character of each name capital
+                            groups["unsorted"] += $"`{item[0].ToString().ToUpper()}`";
+                        }
+                    }
+
+                    //Make a list out of them
+                    string message = "Your biases:\n\n";
+                    foreach (var item in groups)
+                    {
+                        if (item.Key != "soloist" && item.Key != "unsorted")
+                        {
+                            message += $"{item.Value}\n";
+                        }
+                    }
+
+                    //Add soloists and unsorted ones to the end
+                    if (groups.ContainsKey("soloist"))
+                    {
+                        message += $"{groups["soloist"]}\n";
+                    }
+                    if (groups.ContainsKey("unsorted"))
+                    {
+                        message += $"{groups["unsorted"]}";
                     }
 
                     //Generate a random number, 10% chance for an additional message to appear
@@ -206,29 +249,68 @@ namespace Discord_Bot.Modules.Commands
         }
 
         [Command("bias list")]
-        public async Task BiasList()
+        public async Task BiasList([Remainder] string groupName = "")
         {
 
             try
             {
+                groupName = groupName.ToLower();
+
                 //Get the global list of biases
-                var result = DBFunctions.BiasList();
+                var result = DBFunctions.BiasList(groupName);
 
                 //Check if we have any
                 if (result == null)
                 {
-                    await ReplyAsync("No biases have been added yet!");
+                    if (groupName != "") await ReplyAsync("No biases from that group are in the database!");
+                    else await ReplyAsync("No biases have been added yet!");
                 }
                 else
                 {
-                    //Make a list out of them
-                    string message = "List of biases:\n";
+                    Dictionary<string, string> groups = new();
                     foreach (DataRow item in result.Rows)
                     {
-                        if (message != "List of biases:\n") message += ", ";
+                        if (item[2].ToString() != "")
+                        {
+                            //Check if key exists for group, if not, make it
+                            if (!groups.ContainsKey(item[2].ToString())) groups.Add(item[2].ToString(), $"{item[2].ToString().ToUpper()}:\n");
 
-                        //We make the first character of each name capital
-                        message += $"`{char.ToUpper(item[1].ToString()[0]) + item[1].ToString()[1..]}`";
+                            //If dictionary item has been modified from default, add comma
+                            if (groups[item[2].ToString()] != $"{item[2].ToString().ToUpper()}:\n") groups[item[2].ToString()] += ", ";
+
+                            //We make the first character of each name capital
+                            groups[item[2].ToString()] += $"`{item[1].ToString().ToUpper()}`";
+                        }
+                        else
+                        {
+                            if(!groups.ContainsKey("unsorted")) groups.Add("unsorted", $"UNSORTED:\n");
+
+                            //If dictionary item has been modified from default, add comma
+                            if (groups["unsorted"] != $"UNSORTED:\n") groups["unsorted"] += ", ";
+
+                            //We make the first character of each name capital
+                            groups["unsorted"] += $"`{item[1].ToString().ToUpper()}`";
+                        }
+                    }
+                    
+                    //Make a list out of them
+                    string message = "List of biases:\n\n";
+                    foreach (var item in groups)
+                    {
+                        if(item.Key != "soloist" && item.Key != "unsorted")
+                        {
+                            message += $"{item.Value}\n";
+                        }
+                    }
+
+                    //Add soloists and unsorted ones to the end
+                    if (groups.ContainsKey("soloist"))
+                    {
+                        message += $"{groups["soloist"]}\n";
+                    }
+                    if (groups.ContainsKey("unsorted"))
+                    {
+                        message += $"{groups["unsorted"]}";
                     }
 
                     await ReplyAsync(message);
@@ -244,22 +326,26 @@ namespace Discord_Bot.Modules.Commands
 
         [Command("ping")]
         [RequireContext(ContextType.Guild)]
-        public async Task PingBias([Remainder] string biasName)
+        public async Task PingBias([Remainder] string biasNames)
         {
             try
             {
-                //Make the name lowercase and clear and accidental spaces
-                biasName = biasName.ToLower().Trim();
+                //Make the name lowercase and split up names
+                biasNames = biasNames.ToLower();
+                string[] nameList = biasNames.Split(',');
+
+                //Clear trailing white spaces
+                for (int i = 0; i < nameList.Length; i++) nameList[i] = nameList[i].Trim();
 
                 //Check if that idol is in the database
-                if (DBFunctions.BiasByName(biasName) == null)
+                if (DBFunctions.BiasByNameForEach(nameList) == null)
                 {
-                    await ReplyAsync("No bias found with that name!");
+                    await ReplyAsync("No bias found with that name/those names!");
                 }
                 else
                 {
                     //Get the user ids that have this set as their bias
-                    var userIds = DBFunctions.UsersWithBiasList(biasName);
+                    var userIds = DBFunctions.UsersWithBiasList(nameList);
 
                     await Context.Guild.DownloadUsersAsync();
                     
