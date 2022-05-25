@@ -193,7 +193,13 @@ namespace Discord_Bot
             try
             {
                 File.Copy("database.db", Path.Combine(Directory.GetCurrentDirectory(),
-                    $"Assets\\Data\\database_{"" + DateTime.Now.Year + DateTime.Now.Month + DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Minute}.db"));
+                    $"Assets\\Data\\database_"
+                    + (DateTime.Now.Year < 10 ? "0" + DateTime.Now.Year : DateTime.Now.Year) 
+                    + (DateTime.Now.Month < 10 ? "0" + DateTime.Now.Month : DateTime.Now.Month)
+                    + (DateTime.Now.Day < 10 ? "0" + DateTime.Now.Day : DateTime.Now.Day)
+                    + (DateTime.Now.Hour < 10 ? "0" + DateTime.Now.Hour : DateTime.Now.Hour) 
+                    + (DateTime.Now.Minute < 10 ? "0" + DateTime.Now.Minute : DateTime.Now.Minute) 
+                    + ".db"));
                 Console.WriteLine("Database backup created!");
             }
             catch (Exception ex)

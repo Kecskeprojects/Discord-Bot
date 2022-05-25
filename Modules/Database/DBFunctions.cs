@@ -87,9 +87,9 @@ namespace Discord_Bot.Modules.Database
         //SELFROLE database commands
         //
 
-        public static DataRow SelfRoleGet(ulong serverId, string name)
+        public static DataRow SelfRoleGet(ulong serverId, string roleName)
         {
-            var table = Read($"SELECT * FROM `customcommand` WHERE `command` = '{name}' AND `serverId` = '{serverId}'");
+            var table = Read($"SELECT * FROM `role` WHERE `roleName` = '{roleName}' AND `serverId` = '{serverId}'");
 
             if (table.Rows.Count > 0) { return table.Rows[0]; }
             else return null;
@@ -104,7 +104,7 @@ namespace Discord_Bot.Modules.Database
 
         public static int SelfRoleRemove(ulong serverId, ulong roleName)
         {
-            return Delete($"DELETE FROM `customcommand` WHERE `command` = '{roleName}' AND `serverId` = '{serverId}';");
+            return Delete($"DELETE FROM `role` WHERE `roleName` = '{roleName}' AND `serverId` = '{serverId}';");
         }
 
 
@@ -161,9 +161,12 @@ namespace Discord_Bot.Modules.Database
         //BIASLIST database commands
         //
 
-        public static DataTable BiasList()
+        public static DataTable BiasList(string biasGroup = "")
         {
-            var table = Read($"SELECT * FROM `bias`;");
+            //If a group is searched for, add a search for it
+            if (biasGroup != "") biasGroup = $"WHERE `biasGroup` = '{biasGroup}'";
+
+            var table = Read($"SELECT * FROM `bias` {biasGroup};");
 
             if (table.Rows.Count > 0) { return table; }
             else return null;
@@ -178,10 +181,27 @@ namespace Discord_Bot.Modules.Database
             else return null;
         }
 
-
-        public static int BiasAdd(int biasId, string biasName)
+        public static DataRow BiasByNameForEach(string[] biasNames)
         {
-            return Insert($"INSERT INTO `bias` (`biasId`,`biasName`) VALUES ('{biasId}','{biasName}');");
+            //Stringing together all the names we are searching for
+            string checked_names = "";
+            foreach (var item in biasNames)
+            {
+                if (checked_names != "") checked_names += " OR ";
+
+                checked_names += $"`biasName` = '{item}'";
+            }
+
+            var table = Read($"SELECT `biasId` FROM `bias` WHERE {checked_names};");
+
+            if (table.Rows.Count > 0) { return table.Rows[0]; }
+            else return null;
+        }
+
+
+        public static int BiasAdd(int biasId, string biasName, string biasGroup)
+        {
+            return Insert($"INSERT INTO `bias` (`biasId`,`biasName`,`biasGroup`) VALUES ('{biasId}','{biasName}','{biasGroup}');");
         }
 
 
@@ -195,9 +215,12 @@ namespace Discord_Bot.Modules.Database
         //USERBIAS database commands
         //
 
-        public static DataTable UserBiasesList(ulong userId)
+        public static DataTable UserBiasesList(ulong userId, string biasGroup)
         {
-            var table = Read($"SELECT `bias`.`biasName` AS 'biasName' FROM `userbias` INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` WHERE `userbias`.`userId` = '{userId}';");
+            //If a group is searched for, add a search for it
+            if (biasGroup != "") biasGroup = $"AND `biasGroup` = '{biasGroup}'";
+
+            var table = Read($"SELECT `bias`.`biasName`, `bias`.`biasGroup` AS 'biasName' FROM `userbias` INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` WHERE `userbias`.`userId` = '{userId}' {biasGroup};");
 
             if (table.Rows.Count > 0) { return table; }
             else return null;
@@ -213,9 +236,18 @@ namespace Discord_Bot.Modules.Database
         }
 
 
-        public static DataTable UsersWithBiasList(string biasName)
+        public static DataTable UsersWithBiasList(string[] biasNames)
         {
-            var table = Read($"SELECT `userId` FROM `userbias` INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` WHERE `bias`.`biasName` = '{biasName}';");
+            //Stringing together all the names we are searching for
+            string checked_names = "";
+            foreach (var item in biasNames)
+            {
+                if (checked_names != "") checked_names += " OR ";
+
+                checked_names += $"`bias`.`biasName` = '{item}'";
+            }
+
+            var table = Read($"SELECT `userId` FROM `userbias` INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` WHERE {checked_names};");
 
             if (table.Rows.Count > 0) { return table; }
             else return null;
