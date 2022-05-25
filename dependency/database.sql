@@ -41,6 +41,7 @@ CREATE TABLE `serversetting` (
 CREATE TABLE `bias` (
   `biasId` int(4),
   `biasName` varchar(30),
+  `biasGroup` varchar(30)
   PRIMARY KEY (`biasId`)
 );
 
