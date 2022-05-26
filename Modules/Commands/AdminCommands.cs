@@ -233,7 +233,7 @@ namespace Discord_Bot.Modules.Commands
         [Command("self role add")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
         [RequireContext(ContextType.Guild)]
-        public async Task SelfRoleAdd(string name)
+        public async Task SelfRoleAdd([Remainder] string name)
         {
             try
             {
@@ -270,7 +270,7 @@ namespace Discord_Bot.Modules.Commands
         [Command("self role remove")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
         [RequireContext(ContextType.Guild)]
-        public async Task SelfRoleRemove(string name)
+        public async Task SelfRoleRemove([Remainder] string name)
         {
             try
             {
