@@ -7,7 +7,6 @@ using System.IO;
 using Discord_Bot.Modules.ListClasses;
 using Discord_Bot.Modules.Database;
 using System.Data;
-using System.Text;
 
 namespace Discord_Bot.Modules.Commands
 {

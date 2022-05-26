@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Discord_Bot.Modules.Commands
 {
-    internal class OwnerCommands : ModuleBase<SocketCommandContext>, Interfaces.IOwnerCommands
+    public class OwnerCommands : ModuleBase<SocketCommandContext>, Interfaces.IOwnerCommands
     {
         //
         //OWNER COMMANDS
