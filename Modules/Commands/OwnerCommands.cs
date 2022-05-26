@@ -25,15 +25,15 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                if (!File.Exists("\\Assets\\Commands\\List of Commands.txt")) { await ReplyAsync("Command file missing!"); return; }
+                if (!File.Exists("\\Assets\\Commands\\All_Commands.txt")) { await ReplyAsync("Command file missing!"); return; }
 
-                await Context.Channel.SendFileAsync(Directory.GetCurrentDirectory() + "\\Assets\\Commands\\List of Commands.txt");
+                await Context.Channel.SendFileAsync(Directory.GetCurrentDirectory() + "\\Assets\\Commands\\All_Commands.txt");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs Help", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "OwnerCommands.cs Help", ex.ToString()));
             }
         }
 
@@ -62,7 +62,7 @@ namespace Discord_Bot.Modules.Commands
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs GreetingAdd", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "OwnerCommands.cs GreetingAdd", ex.ToString()));
             }
         }
 
@@ -85,7 +85,7 @@ namespace Discord_Bot.Modules.Commands
             {
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs GreetingRemove", ex.ToString()));
+                Global.Logs.Add(new Log("ERROR", "OwnerCommands.cs GreetingRemove", ex.ToString()));
             }
         }
 
@@ -160,7 +160,7 @@ namespace Discord_Bot.Modules.Commands
                 {
                     Console.WriteLine(ex.ToString());
                     Global.Logs.Add(new Log("DEV", ex.Message));
-                    Global.Logs.Add(new Log("ERROR", "AdminCommands.cs DBManagement", ex.ToString()));
+                    Global.Logs.Add(new Log("ERROR", "OwnerCommands.cs DBManagement", ex.ToString()));
                 }
             }
         }
