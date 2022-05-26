@@ -64,32 +64,5 @@ namespace Discord_Bot.Modules.Interfaces
         [RequireUserPermission(ChannelPermission.ManageChannels)]
         [RequireContext(ContextType.Guild)]
         public Task ServerSettings();
-
-
-        [Command("say")]
-        [RequireOwner]
-        [RequireContext(ContextType.Guild)]
-        public Task Say(IMessageChannel channel, [Remainder] string text);
-
-
-        [Command("dbmanagement")]
-        [RequireOwner]
-        public Task DBManagement([Remainder] string query);
-
-
-        [Command("greeting add")]
-        [RequireOwner]
-        public Task GreetingAdd(string url);
-
-
-        [Command("greeting remove")]
-        [RequireOwner]
-        public Task GreetingRemove(int id);
-
-
-        [Command("game ping")]
-        [RequireUserPermission(ChannelPermission.ManageChannels)]
-        [RequireContext(ContextType.Guild)]
-        public Task Ping();
     }
 }

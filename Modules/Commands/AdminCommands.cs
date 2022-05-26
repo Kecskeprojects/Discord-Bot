@@ -228,7 +228,54 @@ namespace Discord_Bot.Modules.Commands
         }
 
 
-        
+
+        //Lists server settings
+        [Command("server settings")]
+        [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireContext(ContextType.Guild)]
+        public async Task ServerSettings()
+        {
+            try
+            {
+                Server server = Global.servers[Context.Guild.Id];
+                ulong[] ids = { server.MusicChannel, server.RoleChannel, server.TNotifChannel, server.TNotifRole };
+                string[] ch_names = { "none", "none", "none", "none" };
+
+                for (int i = 0; i < 3; i++)
+                {
+                    var item = Context.Guild.TextChannels.Where(n => n.Id == ids[i]).FirstOrDefault();
+                    if (item != null) ch_names[i] = item.Name;
+                }
+
+                if (ids[3] != 0) ch_names[3] = (Context.Channel as IGuildChannel).Guild.GetRole(ids[3]).Name;
+
+
+                EmbedBuilder embed = new();
+
+                embed.WithTitle("The server's settings are the following:");
+                embed.AddField("Music channel:", $"`{ch_names[0]}`");
+                embed.AddField("Role channel:", $"`{ch_names[1]}`");
+                embed.AddField("Notification channel:", $"`{ch_names[2]}`");
+                embed.AddField("Notification role:", $"`{ch_names[3]}`");
+                embed.AddField("Notified Twitch Channel Id:", $"`{(server.TChannelId == "" ? "none" : server.TChannelId)}`");
+                embed.AddField("Notifued Twitch channel URL:", $"`{(server.TChannelLink == "" ? "none" : server.TChannelLink)}`");
+
+                embed.WithThumbnailUrl(Global.Config.Img);
+                embed.WithTimestamp(DateTime.Now);
+                embed.WithColor(Color.Teal);
+
+                await ReplyAsync("", false, embed.Build());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs ServerSettings", ex.ToString()));
+            }
+        }
+
+
+
         //Adding self role to database
         [Command("self role add")]
         [RequireUserPermission(ChannelPermission.ManageChannels)]
@@ -350,188 +397,5 @@ namespace Discord_Bot.Modules.Commands
                 Global.Logs.Add(new Log("ERROR", "AdminCommands.cs KeywordRemove", ex.ToString()));
             }
         }
-
-
-
-        //Lists server settings
-        [Command("server settings")]
-        [RequireUserPermission(ChannelPermission.ManageChannels)]
-        [RequireContext(ContextType.Guild)]
-        public async Task ServerSettings()
-        {
-            try
-            {
-                Server server = Global.servers[Context.Guild.Id];
-                ulong[] ids = { server.MusicChannel, server.RoleChannel, server.TNotifChannel, server.TNotifRole};
-                string[] ch_names = { "none", "none", "none", "none"};
-
-                for (int i = 0; i < 3; i++)
-                {
-                    var item = Context.Guild.TextChannels.Where(n => n.Id == ids[i]).FirstOrDefault();
-                    if (item != null) ch_names[i] = item.Name;
-                }
-
-                if (ids[3] != 0) ch_names[3] = (Context.Channel as IGuildChannel).Guild.GetRole(ids[3]).Name;
-
-
-                EmbedBuilder embed = new();
-
-                embed.WithTitle("The server's settings are the following:");
-                embed.AddField("Music channel:", $"`{ ch_names[0]}`");
-                embed.AddField("Role channel:", $"`{ ch_names[1]}`");
-                embed.AddField("Notification channel:", $"`{ ch_names[2]}`");
-                embed.AddField("Notification role:", $"`{ ch_names[3]}`");
-                embed.AddField("Notified Twitch Channel Id:", $"`{ (server.TChannelId == "" ? "none" : server.TChannelId)}`");
-                embed.AddField("Notifued Twitch channel URL:", $"`{ (server.TChannelLink == "" ? "none" : server.TChannelLink) }`");
-
-                embed.WithThumbnailUrl(Global.Config.Img);
-                embed.WithTimestamp(DateTime.Now);
-                embed.WithColor(Color.Teal);
-
-                await ReplyAsync("", false, embed.Build());
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs ServerSettings", ex.ToString()));
-            }
-        }
-
-
-
-        //Command for owner to add global greeting gifs
-        [Command("greeting add")]
-        [RequireOwner]
-        public async Task GreetingAdd(string url)
-        {
-            try
-            {
-                var result = DBFunctions.AllGreeting();
-
-                int id;
-                if (result == null) id = 1;
-                else id = int.Parse(result.Rows[^1][0].ToString()) + 1;
-
-                if (DBFunctions.GreetingAdd(id, url) > 0)
-                {
-                    await ReplyAsync("Greeting added!");
-                }
-                else await ReplyAsync("Greeting could not be added!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs GreetingAdd", ex.ToString()));
-            }
-        }
-
-
-
-        //Command for owner to remove global greeting gifs
-        [Command("greeting remove")]
-        [RequireOwner]
-        public async Task GreetingRemove(int id)
-        {
-            try
-            {
-                if (DBFunctions.GreetingRemove(id) > 0)
-                {
-                    await ReplyAsync("Greeting removed!");
-                }
-                else await ReplyAsync("Greeting could not be removed!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "AdminCommands.cs GreetingRemove", ex.ToString()));
-            }
-        }
-
-
-
-        //Command for owner, the bot says in whatever channel you gave it what you told it to say
-        [Command("say")]
-        [RequireOwner]
-        [RequireContext(ContextType.Guild)]
-        public async Task Say(IMessageChannel channel, [Remainder] string text)
-        {
-            if (Context.Guild.TextChannels.Contains(channel))
-            {
-                await Context.Message.DeleteAsync();
-
-                await channel.SendMessageAsync(text);
-            }
-        }
-
-
-
-        //Manual SQL queries, sends file to text channel if it is a SELECT command
-        [Command("dbmanagement")]
-        [RequireOwner]
-        public async Task DBManagement([Remainder] string query)
-        {
-            Tuple<int, DataTable, string> result = DBFunctions.ManualDBManagement(query);
-
-            int affected_rows = result.Item1;
-            DataTable table = result.Item2;
-            string Error = result.Item3;
-
-            if (Error != "")
-            {
-                await ReplyAsync(result.Item3);
-            }
-            else if (table.Rows.Count < 1)
-            {
-                await ReplyAsync("Number of affected rows: " + affected_rows);
-            }
-            else
-            {
-                int maxwidth = table.Columns.Count;
-                string text = "";
-
-                foreach (DataColumn item in table.Columns)
-                {
-                    if (text != "") text += ";";
-                    text += item.ColumnName;
-                }
-                text += "\n";
-
-                foreach (DataRow row in table.Rows)
-                {
-                    for (int i = 0; i < maxwidth; i++)
-                    {
-                        if (!text.EndsWith("\n")) text += ";";
-                        text += row[i].ToString();
-                    }
-                    text += "\n";
-                }
-
-                try
-                {
-                    StreamWriter writer = new($"Assets\\{table.TableName}.txt", false, Encoding.UTF8);
-                    writer.WriteLine(text);
-                    writer.Close();
-                    await Context.Channel.SendFileAsync($"Assets\\{table.TableName}.txt");
-                    File.Delete($"Assets\\{table.TableName}.txt");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                    Global.Logs.Add(new Log("DEV", ex.Message));
-                    Global.Logs.Add(new Log("ERROR", "AdminCommands.cs DBManagement", ex.ToString()));
-                }
-            }
-        }
-
-
-
-        //Test to see if bot is responsive
-        [Command("game ping")]
-        [RequireUserPermission(ChannelPermission.ManageChannels)]
-        [RequireContext(ContextType.Guild)]
-        public async Task Ping() { await ReplyAsync("pong"); }
     }
 }
