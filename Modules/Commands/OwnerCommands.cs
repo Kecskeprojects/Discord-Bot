@@ -25,7 +25,7 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                if (!File.Exists("\\Assets\\Commands\\All_Commands.txt")) { await ReplyAsync("Command file missing!"); return; }
+                if (!File.Exists("Assets\\Commands\\All_Commands.txt")) { await ReplyAsync("Command file missing!"); return; }
 
                 await Context.Channel.SendFileAsync(Directory.GetCurrentDirectory() + "\\Assets\\Commands\\All_Commands.txt");
             }
