@@ -247,7 +247,7 @@ namespace Discord_Bot.Modules.Database
                 checked_names += $"`bias`.`biasName` = '{item}'";
             }
 
-            var table = Read($"SELECT `userId` FROM `userbias` INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` WHERE {checked_names};");
+            var table = Read($"SELECT DISTINCT `userId` FROM `userbias` INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` WHERE {checked_names};");
 
             if (table.Rows.Count > 0) { return table; }
             else return null;
