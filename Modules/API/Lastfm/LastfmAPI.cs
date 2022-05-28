@@ -224,6 +224,10 @@ namespace Discord_Bot.Modules.API.Lastfm
                             if(tryCount < 4)
                             {
                                 tryCount++;
+
+                                Console.WriteLine("Now playing try " + tryCount);
+                                Global.Logs.Add(new Log("LOG", "Now playing try " + tryCount));
+
                                 await Task.Delay(200);
                                 continue;
                             }
