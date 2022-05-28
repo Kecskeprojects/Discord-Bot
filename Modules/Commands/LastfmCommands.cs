@@ -75,7 +75,7 @@ namespace Discord_Bot.Modules.Commands
                         int limit = int.Parse(parameters[0]);
                         string period = parameters[1];
 
-                        await LastfmAPI.TopTracks(Context, username, limit < 31 && limit > 0 ? limit : 10, period);
+                        await LastfmAPI.TopTracks(Context, username, limit, period);
                     }
                 }
                 else await ReplyAsync("You have yet to connect a username to your discord account. Use the !lf conn command to do so!");
@@ -109,7 +109,7 @@ namespace Discord_Bot.Modules.Commands
                         int limit = int.Parse(parameters[0]);
                         string period = parameters[1];
 
-                        await LastfmAPI.TopAlbums(Context, username, limit < 31 && limit > 0 ? limit : 10, period);
+                        await LastfmAPI.TopAlbums(Context, username, limit, period);
                     }
                 }
                 else await ReplyAsync("You have yet to connect a username to your discord account. Use the !lf conn [username] command to do so!");
@@ -143,7 +143,7 @@ namespace Discord_Bot.Modules.Commands
                         int limit = int.Parse(parameters[0]);
                         string period = parameters[1];
 
-                        await LastfmAPI.TopArtists(Context, username, limit < 31 && limit > 0 ? limit : 10, period);
+                        await LastfmAPI.TopArtists(Context, username, limit, period);
                     }
 
                 }
@@ -196,7 +196,7 @@ namespace Discord_Bot.Modules.Commands
                 {
                     string username = row[1].ToString();
 
-                    await LastfmAPI.Recents(Context, username, limit < 31 && limit > 0 ? limit : 10);
+                    await LastfmAPI.Recents(Context, username, limit);
                 }
                 else await ReplyAsync("You have yet to connect a username to your discord account. Use the !lf conn [username] command to do so!");
             }

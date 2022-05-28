@@ -4,6 +4,8 @@ using RestSharp;
 using Newtonsoft.Json;
 using System.Linq;
 using System;
+using Discord.Commands;
+using Discord;
 
 namespace Discord_Bot.Modules.API.Lastfm
 {
@@ -75,14 +77,30 @@ namespace Discord_Bot.Modules.API.Lastfm
 
 
 
+        protected static string GetNickname(SocketCommandContext context)
+        {
+            //Only check for nickname if user is not using DMs
+            if (context.Channel.GetChannelType() != ChannelType.DM)
+            {
+                //If user has a nickname, use that in the embed
+                return (context.User as Discord.WebSocket.SocketGuildUser).Nickname ?? context.User.Username;
+            }
+            else return context.User.Username;
+        }
+
+
+
         //The main request handling function
         static readonly RestClient _client = new("http://ws.audioscrobbler.com/2.0/");
         protected static async Task<RestResponse> RequestHandler(string type, string name, int limit = 0, int page = 0, string period = "")
         {
             string request_string = $"?method={type}&user={name}&api_key={Global.Config.Lastfm_API_Key}";
 
-            if (limit != 0) request_string += $"&limit={limit}";
+            if (limit < 31 && limit > 0) request_string += $"&limit={limit}";
+            else request_string += "&limit=10";
+
             if (page != 0) request_string += $"&page={page}";
+
             if (period != "") request_string += $"&period={period}";
 
             request_string += "&format=json";

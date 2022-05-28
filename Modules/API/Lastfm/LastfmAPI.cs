@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
@@ -27,19 +26,27 @@ namespace Discord_Bot.Modules.API.Lastfm
                     //Building embed
                     EmbedBuilder builder = new();
 
-                    //If user has a nickname, use that in the embed
-                    string temp_name = (context.User as SocketGuildUser).Nickname ?? context.User.Username;
+                    //Get nickname if possible
+                    string temp_name = GetNickname(context);
 
                     builder.WithAuthor(temp_name + "'s Top Tracks...", iconUrl: "https://cdn.discordapp.com/attachments/891418209843044354/923401581704118314/last_fm.png");
 
-                    string list = ""; int i = 1;
+                    string[] list = { "", "", "" }; int i = 1; int index = 0;
                     foreach (TopTrackClass.Track track in response.TopTracks.Track)
                     {
-                        list += $"`#{i}`**{track.Name}** by **{track.Artist.Name}** - *{Math.Round(double.Parse(track.PlayCount) / totalplays * 100)}%* (*{track.PlayCount} plays*)\n";
+                        list[index] += $"`#{i}`**{track.Name}** by **{track.Artist.Name}** - *{Math.Round(double.Parse(track.PlayCount) / totalplays * 100)}%* (*{track.PlayCount} plays*)\n";
+
+                        //If we went through 10 results, start filling a new list page
+                        if (i % 10 == 0) index++;
+
                         i++;
                     }
 
-                    builder.AddField("\u200b", list, false);
+                    //Make each part of the text into separate fields, thus going around the 1024 character limit of a single field
+                    foreach (var item in list)
+                    {
+                        if(item != "") builder.AddField("\u200b", item, false);
+                    }
 
                     builder.WithFooter("Total plays: " + totalplays);
                     builder.WithCurrentTimestamp();
@@ -74,20 +81,28 @@ namespace Discord_Bot.Modules.API.Lastfm
                     //Building embed
                     EmbedBuilder builder = new();
 
-                    //If user has a nickname, use that in the embed
-                    string temp_name = (context.User as SocketGuildUser).Nickname ?? context.User.Username;
+                    //Get nickname if possible
+                    string temp_name = GetNickname(context);
 
                     builder.WithAuthor(temp_name + "'s Top Albums...", iconUrl: "https://cdn.discordapp.com/attachments/891418209843044354/923401581704118314/last_fm.png");
                     builder.WithThumbnailUrl(response.TopAlbums.Album[0].Image[1].Text);
 
-                    string list = ""; int i = 1;
+                    string[] list = { "", "", "" }; int i = 1; int index = 0;
                     foreach (TopAlbumClass.Album album in response.TopAlbums.Album)
                     {
-                        list += $"`#{i}`**{album.Name}** by **{album.Artist.Name}** - *{Math.Round(double.Parse(album.PlayCount) / totalplays * 100)}%* (*{album.PlayCount} plays*)\n";
+                        list[index] += $"`#{i}`**{album.Name}** by **{album.Artist.Name}** - *{Math.Round(double.Parse(album.PlayCount) / totalplays * 100)}%* (*{album.PlayCount} plays*)\n";
+
+                        //If we went through 10 results, start filling a new list page
+                        if (i % 10 == 0) index++;
+
                         i++;
                     }
 
-                    builder.AddField("\u200b", list, false);
+                    //Make each part of the text into separate fields, thus going around the 1024 character limit of a single field
+                    foreach (var item in list)
+                    {
+                        if (item != "") builder.AddField("\u200b", item, false);
+                    }
 
                     builder.WithFooter("Total plays: " + totalplays);
                     builder.WithCurrentTimestamp();
@@ -122,19 +137,27 @@ namespace Discord_Bot.Modules.API.Lastfm
                     //Building embed
                     EmbedBuilder builder = new();
 
-                    //If user has a nickname, use that in the embed
-                    string temp_name = (context.User as SocketGuildUser).Nickname ?? context.User.Username;
+                    //Get nickname if possible
+                    string temp_name = GetNickname(context);
 
                     builder.WithAuthor(temp_name + "'s Top Artists...", iconUrl: "https://cdn.discordapp.com/attachments/891418209843044354/923401581704118314/last_fm.png");
 
-                    string list = ""; int i = 1;
+                    string[] list = { "", "", "" }; int i = 1; int index = 0;
                     foreach (TopArtistClass.Artist artist in response.TopArtists.Artist)
                     {
-                        list += $"`#{i}`**{artist.Name}** - *{Math.Round(double.Parse(artist.PlayCount) / totalplays * 100)}%* (*{artist.PlayCount} plays*)\n";
+                        list[index] += $"`#{i}`**{artist.Name}** - *{Math.Round(double.Parse(artist.PlayCount) / totalplays * 100)}%* (*{artist.PlayCount} plays*)\n";
+
+                        //If we went through 10 results, start filling a new list page
+                        if (i % 10 == 0) index++;
+
                         i++;
                     }
 
-                    builder.AddField("\u200b", list, false);
+                    //Make each part of the text into separate fields, thus going around the 1024 character limit of a single field
+                    foreach (var item in list)
+                    {
+                        if (item != "") builder.AddField("\u200b", item, false);
+                    }
 
                     builder.WithFooter("Total plays: " + totalplays);
                     builder.WithCurrentTimestamp();
@@ -158,41 +181,66 @@ namespace Discord_Bot.Modules.API.Lastfm
         {
             try
             {
-                //Getting data from api
-                var temp = await RequestHandler("user.getrecenttracks", name, limit: 1);
-                var response = JsonConvert.DeserializeObject<RecentClass.Recent>(temp.Content);
-
-                if(response.RecentTracks != null)
+                //Cyclically retry checking for song
+                int tryCount = 0;
+                while(tryCount < 4)
                 {
-                    //If the Attr is not empty in the first index, it means the first song is a song that is currently playing
-                    if (response.RecentTracks.Track[0].Attr != null)
+                    //Getting data from api
+                    var temp = await RequestHandler("user.getrecenttracks", name, limit: 1);
+                    var response = JsonConvert.DeserializeObject<RecentClass.Recent>(temp.Content);
+
+                    if (response.RecentTracks != null)
                     {
-                        RecentClass.Track nowplaying = response.RecentTracks.Track[0];
+                        //If the Attr is not empty in the first index, it means the first song is a song that is currently playing
+                        if (response.RecentTracks.Track[0].Attr != null)
+                        {
+                            RecentClass.Track nowplaying = response.RecentTracks.Track[0];
 
-                        //Building embed
-                        EmbedBuilder builder = new();
+                            //Building embed
+                            EmbedBuilder builder = new();
 
-                        //If user has a nickname, use that in the embed
-                        string temp_name = (context.User as SocketGuildUser).Nickname ?? context.User.Username;
+                            //Get nickname if possible
+                            string temp_name = GetNickname(context);
 
-                        builder.WithAuthor(temp_name + " is currently listening to...", iconUrl: "https://cdn.discordapp.com/attachments/891418209843044354/923401581704118314/last_fm.png");
+                            builder.WithAuthor(temp_name + " is currently listening to...", iconUrl: "https://cdn.discordapp.com/attachments/891418209843044354/923401581704118314/last_fm.png");
 
-                        builder.WithTitle(nowplaying.Name);
-                        builder.WithUrl(nowplaying.Url);
+                            builder.WithTitle(nowplaying.Name);
+                            builder.WithUrl(nowplaying.Url);
 
-                        builder.AddField($"By *{nowplaying.Artist.Text}*", $"**On *{nowplaying.Album.Text}***");
+                            builder.AddField($"By *{nowplaying.Artist.Text}*", $"**On *{nowplaying.Album.Text}***");
 
-                        builder.WithThumbnailUrl(nowplaying.Image[1].Text);
+                            builder.WithThumbnailUrl(nowplaying.Image[1].Text);
 
-                        builder.WithCurrentTimestamp();
-                        builder.WithColor(Color.Red);
+                            builder.WithCurrentTimestamp();
+                            builder.WithColor(Color.Red);
 
-                        await context.Channel.SendMessageAsync("", false, builder.Build());
+                            await context.Channel.SendMessageAsync("", false, builder.Build());
+                            break;
+                        }
+                        else
+                        {
+                            //If no currently playing song is found, wait and try once more
+                            //This is to try and go around lastfm not always recognizing when user is playing a song on spotify for example
+                            if(tryCount < 4)
+                            {
+                                tryCount++;
+                                await Task.Delay(200);
+                                continue;
+                            }
+                        }
                     }
-                    else await context.Channel.SendMessageAsync("You are not listening to anything currently!");
+                    else
+                    {
+                        await context.Channel.SendMessageAsync("Error during request!\nCheck to make sure if you set your lastfm username correctly!");
+                        break;
+                    }
                 }
-                else await context.Channel.SendMessageAsync("Error during request!\nCheck to make sure if you set your lastfm username correctly!");
-                
+
+                //If in all 4 tries, no current song was found, user is most likely not listening to anything
+                if(tryCount == 4)
+                {
+                    await context.Channel.SendMessageAsync("You are not listening to anything currently!");
+                }
             }
             catch (Exception ex)
             {
@@ -217,21 +265,30 @@ namespace Discord_Bot.Modules.API.Lastfm
                     //Building embed
                     EmbedBuilder builder = new();
 
-                    //If user has a nickname, use that in the embed
-                    string temp_name = (context.User as SocketGuildUser).Nickname ?? context.User.Username;
+                    //Get nickname if possible
+                    string temp_name = GetNickname(context);
 
                     builder.WithAuthor(temp_name + " recently listened to...", iconUrl: "https://cdn.discordapp.com/attachments/891418209843044354/923401581704118314/last_fm.png");
 
-                    string list = ""; int i = 1;
+                    string[] list = { "", "", "" }; int i = 1; int index = 0;
                     foreach (RecentClass.Track track in response.RecentTracks.Track)
                     {
                         if (i > limit) break;
-                        list += $"`#{ i}` **{track.Name}** by **{track.Artist.Text}** - *";
-                        list += track.Attr != null ? "Now playing*" : track.Date.Text.Replace(DateTime.Now.Year.ToString(), "") + "*";
-                        list += "\n";
+                        list[index] += $"`#{ i}` **{track.Name}** by **{track.Artist.Text}** - *";
+                        list[index] += track.Attr != null ? "Now playing*" : track.Date.Text.Replace(DateTime.Now.Year.ToString(), "") + "*";
+                        list[index] += "\n";
+
+                        //If we went through 10 results, start filling a new list page
+                        if (i % 10 == 0) index++;
+
                         i++;
                     }
-                    builder.AddField("\u200b", list, false);
+                    
+                    //Make each part of the text into separate fields, thus going around the 1024 character limit of a single field
+                    foreach (var item in list)
+                    {
+                        if (item != "") builder.AddField("\u200b", item, false);
+                    }
 
                     builder.WithCurrentTimestamp();
                     builder.WithColor(Color.Red);
@@ -312,8 +369,8 @@ namespace Discord_Bot.Modules.API.Lastfm
                 //Building embed
                 EmbedBuilder builder = new();
 
-                //If user has a nickname, use that in the embed
-                string temp_name = (context.User as SocketGuildUser).Nickname ?? context.User.Username;
+                //Get nickname if possible
+                string temp_name = GetNickname(context);
 
                 builder.WithAuthor(temp_name + "'s stats for " + albums[0].Artist.Name, iconUrl: "https://cdn.discordapp.com/attachments/891418209843044354/923401581704118314/last_fm.png");
                 builder.WithDescription($"You have listened to this artist **{playcount}** times.\nYou listened to **{albums.Count}** of their albums and **{tracks.Count}** of their tracks.");
