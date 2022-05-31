@@ -46,11 +46,11 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                var result = DBFunctions.AllGreeting();
+                var list = DBFunctions.AllGreeting();
 
                 int id;
-                if (result == null) id = 1;
-                else id = int.Parse(result.Rows[^1][0].ToString()) + 1;
+                if (list.Count == 0) id = 1;
+                else id = list[^1].Id + 1;
 
                 if (DBFunctions.GreetingAdd(id, url) > 0)
                 {

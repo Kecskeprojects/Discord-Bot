@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Threading.Tasks;
 using Discord;
@@ -38,16 +37,19 @@ namespace Discord_Bot.Modules.Commands
         [RequireContext(ContextType.Guild)]
         public async Task CustomList()
         {
+            var list = DBFunctions.AllCustomCommand(Context.Guild.Id);
+            if (list.Count == 0) await ReplyAsync("There are no custom commands on this server!");
+
             try
             {
                 EmbedBuilder builder = new();
                 builder.WithTitle("Custom commands:");
                 string commands = "";
 
-                foreach (DataRow item in DBFunctions.AllCustomCommand(Context.Guild.Id).Rows)
+                foreach (var command in list)
                 {
-                    if (commands == "") { commands += "!" + item[1].ToString(); }
-                    else commands += " , !" + item[1].ToString();
+                    if (commands == "") { commands += "!" + command.Command; }
+                    else commands += " , !" + command.Command;
                 }
                 builder.WithDescription(commands);
                 builder.WithColor(Color.Teal);

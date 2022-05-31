@@ -41,23 +41,20 @@ namespace Discord_Bot.Modules.ListClasses
             AudioVars = new() { Playing = false};
             MusicRequests = new List<MusicRequest>();
         }
-        
 
-        public Server(System.Data.DataRow row)
+
+        public Server(Database.DatabaseClasses.ServerSetting setting)
         {
-            if (row != null)
-            {
-                ServerId = ulong.Parse(row[0].ToString());
-                MusicChannel = ulong.Parse(row[1].ToString());
-                RoleChannel = ulong.Parse(row[2].ToString());
-                TChannelId = row[3].ToString();
-                TChannelLink = row[4].ToString();
-                TNotifChannel = ulong.Parse(row[5].ToString());
-                TNotifRole = ulong.Parse(row[6].ToString());
-                TwitchOnline = false;
-                AudioVars = new() { Playing = false};
-                MusicRequests = new List<MusicRequest>();
-            }
+            ServerId = setting.ServerId;
+            MusicChannel = setting.MusicChannel;
+            RoleChannel = setting.RoleChannel;
+            TChannelId = setting.TwitchChannelId;
+            TChannelLink = setting.TwitchChannelLink;
+            TNotifChannel = setting.TwitchNotificationChannel;
+            TNotifRole = setting.TwitchNotificationRole;
+            TwitchOnline = false;
+            AudioVars = new() { Playing = false };
+            MusicRequests = new List<MusicRequest>();
         }
     }
 }

@@ -96,8 +96,10 @@ namespace Discord_Bot.Modules.API.Lastfm
         {
             string request_string = $"?method={type}&user={name}&api_key={Global.Config.Lastfm_API_Key}";
 
-            if (limit < 31 && limit > 0) request_string += $"&limit={limit}";
-            else request_string += "&limit=10";
+            if (limit > 0) 
+            {
+                request_string += $"&limit={limit}"; 
+            }
 
             if (page != 0) request_string += $"&page={page}";
 

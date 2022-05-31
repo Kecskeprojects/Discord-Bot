@@ -16,7 +16,7 @@ namespace Discord_Bot.Modules.API.Lastfm
             try
             {
                 //Getting data from api
-                var temp = await RequestHandler("user.gettoptracks", name, limit: limit, period: period);
+                var temp = await RequestHandler("user.gettoptracks", name, limit: limit > 31 ? 10 : limit, period: period);
                 var response = JsonConvert.DeserializeObject<TopTrackClass.TopTrack>(temp.Content);
 
                 if (response.TopTracks != null)
@@ -71,7 +71,7 @@ namespace Discord_Bot.Modules.API.Lastfm
             try
             {
                 //Getting data from api
-                var temp = await RequestHandler("user.gettopalbums", name, limit: limit, period: period);
+                var temp = await RequestHandler("user.gettopalbums", name, limit: limit > 31 ? 10 : limit, period: period);
                 var response = JsonConvert.DeserializeObject<TopAlbumClass.TopAlbum>(temp.Content);
 
                 if (response.TopAlbums != null)
@@ -127,7 +127,7 @@ namespace Discord_Bot.Modules.API.Lastfm
             try
             {
                 //Getting data from api
-                var temp = await RequestHandler("user.gettopartists", name, limit: limit, period: period);
+                var temp = await RequestHandler("user.gettopartists", name, limit: limit > 31 ? 10 : limit, period: period);
                 var response = JsonConvert.DeserializeObject<TopArtistClass.TopArtist>(temp.Content);
 
                 if (response.TopArtists != null)
@@ -261,7 +261,7 @@ namespace Discord_Bot.Modules.API.Lastfm
             try
             {
                 //Getting data from api
-                var temp = await RequestHandler("user.getrecenttracks", name, limit: limit);
+                var temp = await RequestHandler("user.getrecenttracks", name, limit: limit > 31 ? 10 : limit);
                 var response = JsonConvert.DeserializeObject<RecentClass.Recent>(temp.Content);
 
                 if(response.RecentTracks != null)

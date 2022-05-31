@@ -16,11 +16,11 @@ namespace Discord_Bot
         {
             try
             {
-                var row = DBFunctions.CustomCommandGet(context.Guild.Id, context.Message.Content[1..].ToLower());
+                var command = DBFunctions.CustomCommandGet(context.Guild.Id, context.Message.Content[1..].ToLower());
 
-                if (row != null) 
+                if (command != null) 
                 {
-                    await context.Message.Channel.SendMessageAsync(row[2].ToString());
+                    await context.Message.Channel.SendMessageAsync(command.URL);
                 }
             }
             catch (Exception ex)
@@ -40,27 +40,24 @@ namespace Discord_Bot
             {
                 RestUserMessage reply = null;
 
-                var row = DBFunctions.SelfRoleGet(context.Guild.Id, context.Message.Content[1..].ToLower());
+                var role = DBFunctions.SelfRoleGet(context.Guild.Id, context.Message.Content[1..].ToLower());
 
-                if (row != null)
+                if (role != null)
                 {
-                    string name = row[1].ToString();
-                    ulong id = ulong.Parse(row[2].ToString());
-
-                    IRole get_role = (context.Channel as IGuildChannel).Guild.GetRole(id);
+                    IRole get_role = (context.Channel as IGuildChannel).Guild.GetRole(role.RoleId);
 
                     switch (context.Message.Content[0])
                     {
                         case '+':
                             {
                                 await (context.User as IGuildUser).AddRoleAsync(get_role);
-                                reply = await context.Channel.SendMessageAsync("You now have the `" + name + "` role!");
+                                reply = await context.Channel.SendMessageAsync("You now have the `" + role.RoleName + "` role!");
                                 break;
                             }
                         case '-':
                             {
                                 await (context.User as IGuildUser).RemoveRoleAsync(get_role);
-                                reply = await context.Channel.SendMessageAsync("`" + name + "` role has been removed!");
+                                reply = await context.Channel.SendMessageAsync("`" + role.RoleName+ "` role has been removed!");
                                 break;
                             }
                     }
@@ -102,10 +99,10 @@ namespace Discord_Bot
 
                 if(context.Message.Content.Length <= 100)
                 {
-                    var row = DBFunctions.KeywordGet(context.Guild.Id, context.Message.Content.Replace("\'" , "").Replace("\"", "").Replace("`", ""));
-                    if (row != null)
+                    var keyword = DBFunctions.KeywordGet(context.Guild.Id, context.Message.Content.Replace("\'" , "").Replace("\"", "").Replace("`", "").Replace(";", ""));
+                    if (keyword != null)
                     {
-                        await context.Channel.SendMessageAsync(row[2].ToString());
+                        await context.Channel.SendMessageAsync(keyword.Response);
                         return;
                     }
                 }

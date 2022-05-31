@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
+using Discord_Bot.Modules.Database.DatabaseClasses;
+using Discord_Bot.Modules.ListClasses;
 
 namespace Discord_Bot.Modules.Database
 {
@@ -9,15 +12,35 @@ namespace Discord_Bot.Modules.Database
         //GREETING database commands
         //
 
-        public static DataTable AllGreeting()
+        public static List<Greeting> AllGreeting()
         {
-            return Read("SELECT * FROM `greeting`;");
+            DataTable table = Read("SELECT `id`, `url` FROM `greeting`;");
+
+            List<Greeting> greetings = new();
+
+            try
+            {
+                foreach (DataRow dr in table.Rows)
+                {
+                    greetings.Add(new Greeting(dr));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+                greetings = new();
+            }
+
+            return greetings;
         }
+
 
         public static int GreetingAdd(int id, string url)
         {
-            return Insert($"INSERT INTO `greeting` (`id`, `url`) VALUES ('{id}','{url}')");
+            return Insert($"INSERT INTO `greeting` (`id`, `url`) VALUES ('{id}','{url}');");
         }
+
 
         public static int GreetingRemove(int id)
         {
@@ -29,15 +52,33 @@ namespace Discord_Bot.Modules.Database
         //SERVERSETTING database commands
         //
 
-        public static DataTable AllServerSetting()
+        public static List<ServerSetting> AllServerSetting()
         {
-            return Read("SELECT * FROM `serversetting`;");
+            var table = Read("SELECT `serverId`, `musicChannel`, `roleChannel`, `tChannelId`, `tChannelLink`, `tNotifChannel`, `tNotifRole` FROM `serversetting`;");
+
+            List<ServerSetting> serverSettings = new();
+
+            try
+            {
+                foreach (DataRow dr in table.Rows)
+                {
+                    serverSettings.Add(new ServerSetting(dr));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+                serverSettings = new();
+            }
+
+            return serverSettings;
         }
 
 
         public static int AddNewServer(ulong serverId)
         {
-            return Insert($"INSERT INTO `serversetting`(`serverId`, `musicChannel`, `roleChannel`, `tNotifChannel`, `tNotifRole`) VALUES ('{serverId}','0','0','0','0');");
+            return Insert($"INSERT INTO `serversetting`(`serverId`, `musicChannel`, `roleChannel`, `tChannelId`, `tChannelLink`, `tNotifChannel`, `tNotifRole`) VALUES ('{serverId}','0','0','','','0','0');");
         }
 
 
@@ -45,6 +86,7 @@ namespace Discord_Bot.Modules.Database
         {
             return Update($"UPDATE `serversetting` SET `{channelType}` = '{channelId}' WHERE `serverId` = '{serverId}';");
         }
+
 
         public static int ServerSettingTwitchUpdate(string ChannelId, string ChannelURL, ulong serverId)
         {
@@ -56,18 +98,50 @@ namespace Discord_Bot.Modules.Database
         //CUSTOMCOMMAND database commands
         //
 
-        public static DataTable AllCustomCommand(ulong serverId)
+        public static List<CustomCommand> AllCustomCommand(ulong serverId)
         {
-            return Read($"SELECT * FROM `customcommand` WHERE `serverId` = '{serverId}';");
+            var table = Read($"SELECT `serverId`, `command`, `url` FROM `customcommand` WHERE `serverId` = '{serverId}';");
+
+            List<CustomCommand> customCommand = new();
+
+            try
+            {
+                foreach (DataRow dr in table.Rows)
+                {
+                    customCommand.Add(new CustomCommand(dr));
+                }
+            }
+            catch (Exception ex) 
+            { 
+                Console.WriteLine(ex.Message); 
+                Global.Logs.Add(new Log("ERROR", ex.ToString())); 
+                customCommand = new(); 
+            }
+
+            return customCommand;
         }
 
 
-        public static DataRow CustomCommandGet(ulong serverId, string name)
+        public static CustomCommand CustomCommandGet(ulong serverId, string name)
         {
-            var table = Read($"SELECT * FROM `customcommand` WHERE `command` = '{name}' AND `serverId` = '{serverId}';");
+            var table = Read($"SELECT `serverId`, `command`, `url` FROM `customcommand` WHERE `command` = '{name}' AND `serverId` = '{serverId}' LIMIT 1;");
 
-            if (table.Rows.Count > 0) { return table.Rows[0]; }
-            else return null;
+            CustomCommand command = null;
+
+            try
+            {
+                if (table.Rows.Count > 0)
+                {
+                    command = new CustomCommand(table.Rows[0]);
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+            }
+
+            return command;
         }
 
 
@@ -87,12 +161,27 @@ namespace Discord_Bot.Modules.Database
         //SELFROLE database commands
         //
 
-        public static DataRow SelfRoleGet(ulong serverId, string roleName)
+        public static Role SelfRoleGet(ulong serverId, string roleName)
         {
-            var table = Read($"SELECT * FROM `role` WHERE `roleName` = '{roleName}' AND `serverId` = '{serverId}'");
+            var table = Read($"SELECT `serverId`, `roleName`, `roleId` FROM `role` WHERE `roleName` = '{roleName}' AND `serverId` = '{serverId}' LIMIT 1;");
 
-            if (table.Rows.Count > 0) { return table.Rows[0]; }
-            else return null;
+            Role role = null;
+
+            try
+            {
+                if (table.Rows.Count > 0)
+                {
+                    role = new Role(table.Rows[0]);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+            }
+
+            
+            return role;
         }
 
 
@@ -112,12 +201,26 @@ namespace Discord_Bot.Modules.Database
         //KEYWORD database commands
         //
 
-        public static DataRow KeywordGet(ulong serverId, string trigger)
+        public static Keyword KeywordGet(ulong serverId, string trigger)
         {
-            var table = Read($"SELECT * FROM `keyword` WHERE `trigger` = '{trigger}' AND `serverId` = '{serverId}';");
+            var table = Read($"SELECT `serverId`, `trigger`, `response` FROM `keyword` WHERE `trigger` = '{trigger}' AND `serverId` = '{serverId}' LIMIT 1;");
 
-            if (table.Rows.Count > 0) { return table.Rows[0]; }
-            else return null;
+            Keyword keyword = null;
+
+            try
+            {
+                if (table.Rows.Count > 0)
+                {
+                    keyword = new Keyword(table.Rows[0]);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+            }
+
+            return keyword;
         }
 
 
@@ -137,21 +240,35 @@ namespace Discord_Bot.Modules.Database
         //LASTFM database commands
         //
 
-        public static DataRow LastfmGet(ulong userId)
+        public static LastFmUser LastfmUserGet(ulong userId)
         {
-            var table = Read($"SELECT * FROM `lastfm` WHERE `userId` = '{userId}';");
+            var table = Read($"SELECT `userId`, `username` FROM `lastfm` WHERE `userId` = '{userId}' LIMIT 1;");
 
-            if (table.Rows.Count > 0) { return table.Rows[0]; }
-            else return null;
+            LastFmUser lastfmuser = null;
+
+            try
+            {
+                if (table.Rows.Count > 0)
+                {
+                    lastfmuser = new LastFmUser(table.Rows[0]);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+            }
+
+            return lastfmuser;
         }
 
-        public static int LastfmAdd(ulong userId, string username)
+        public static int LastfmUserAdd(ulong userId, string username)
         {
             return Insert($"INSERT INTO `lastfm` (`userId`,`username`) VALUES ('{userId}','{username}');");
         }
 
 
-        public static int LastfmRemove(ulong userId)
+        public static int LastfmUserRemove(ulong userId)
         {
             return Delete($"DELETE FROM `lastfm` WHERE `userId` = '{userId}';");
         }
@@ -161,27 +278,61 @@ namespace Discord_Bot.Modules.Database
         //BIASLIST database commands
         //
 
-        public static DataTable BiasList(string biasGroup = "")
+        public static List<Bias> BiasList(string biasGroup = "")
         {
             //If a group is searched for, add a search for it
             if (biasGroup != "") biasGroup = $"WHERE `biasGroup` = '{biasGroup}'";
 
-            var table = Read($"SELECT * FROM `bias` {biasGroup};");
+            var table = Read($"SELECT `biasId`, `biasName`, `biasGroup` FROM `bias` {biasGroup};");
 
-            if (table.Rows.Count > 0) { return table; }
-            else return null;
+            List<Bias> biases = new();
+
+            try
+            {
+                foreach (DataRow dr in table.Rows)
+                {
+                    biases.Add(new Bias(dr));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+                biases = new();
+            }
+
+            return biases;
         }
 
 
-        public static DataRow BiasByName(string biasName)
+        public static Bias BiasSearch(string biasName, string biasGroup = "")
         {
-            var table = Read($"SELECT `biasId` FROM `bias` WHERE `biasName` = '{biasName}';");
+            if(biasGroup != "")
+            {
+                biasGroup = $"AND `biasGroup` = '{biasGroup}'";
+            }
 
-            if (table.Rows.Count > 0) { return table.Rows[0]; }
-            else return null;
+            var table = Read($"SELECT `biasId`, `biasName`, `biasGroup` FROM `bias` WHERE `biasName` = '{biasName}' {biasGroup} LIMIT 1;");
+
+            Bias bias = null;
+
+            try
+            {
+                if (table.Rows.Count > 0)
+                {
+                    bias = new Bias(table.Rows[0]);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+            }
+
+            return bias;
         }
 
-        public static DataRow BiasByNameForEach(string[] biasNames)
+        public static Bias BiasByNameForEach(string[] biasNames)
         {
             //Stringing together all the names we are searching for
             string checked_names = "";
@@ -192,10 +343,24 @@ namespace Discord_Bot.Modules.Database
                 checked_names += $"`biasName` = '{item}'";
             }
 
-            var table = Read($"SELECT `biasId` FROM `bias` WHERE {checked_names};");
+            var table = Read($"SELECT `biasId`, `biasName`, `biasGroup` FROM `bias` WHERE {checked_names} LIMIT 1;");
 
-            if (table.Rows.Count > 0) { return table.Rows[0]; }
-            else return null;
+            Bias bias = null;
+
+            try
+            {
+                if (table.Rows.Count > 0)
+                {
+                    bias = new Bias(table.Rows[0]);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+            }
+
+            return bias;
         }
 
 
@@ -215,28 +380,66 @@ namespace Discord_Bot.Modules.Database
         //USERBIAS database commands
         //
 
-        public static DataTable UserBiasesList(ulong userId, string biasGroup)
+        public static List<Bias> UserBiasesList(ulong userId, string biasGroup = "")
         {
-            //If a group is searched for, add a search for it
-            if (biasGroup != "") biasGroup = $"AND `biasGroup` = '{biasGroup}'";
+            //If a group is searched for, add a constraint for it in the sql query
+            if (biasGroup != "") biasGroup = $"AND `bias`.`biasGroup` = '{biasGroup}'";
 
-            var table = Read($"SELECT `bias`.`biasName`, `bias`.`biasGroup` AS 'biasName' FROM `userbias` INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` WHERE `userbias`.`userId` = '{userId}' {biasGroup};");
+            var table = Read("SELECT `bias`.`biasId` AS 'biasId', `bias`.`biasName` AS 'biasName', `bias`.`biasGroup` AS 'biasGroup' FROM `userbias` " +
+                "INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` " +
+                $"WHERE `userbias`.`userId` = '{userId}' {biasGroup};");
 
-            if (table.Rows.Count > 0) { return table; }
-            else return null;
+            List<Bias> userbiases = new();
+
+            try
+            {
+                foreach (DataRow dr in table.Rows)
+                {
+                    userbiases.Add(new Bias(dr));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+                userbiases = new();
+            }
+
+            return userbiases;
         }
 
 
-        public static DataTable UserBiasCheck(ulong userId, string biasName)
+        public static Bias UserBiasCheck(ulong userId, string biasName, string biasGroup = "")
         {
-            var table = Read($"SELECT `bias`.`biasName` AS 'biasName' FROM `userbias` INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` WHERE `userbias`.`userId` = '{userId}' AND `bias`.`biasname` = '{biasName}';");
+            if (biasGroup != "")
+            {
+                biasGroup = $"AND `bias`.`biasGroup` = '{biasGroup}'";
+            }
 
-            if (table.Rows.Count > 0) { return table; }
-            else return null;
+            var table = Read($"SELECT `bias`.`biasId` AS 'biasId', `bias`.`biasName` AS 'biasName', `bias`.`biasGroup` AS 'biasGroup' FROM `userbias` " +
+                "INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` " +
+                $"WHERE `userbias`.`userId` = '{userId}' AND `bias`.`biasname` = '{biasName}' {biasGroup} LIMIT 1;");
+
+            Bias bias = null;
+
+            try
+            {
+                if (table.Rows.Count > 0)
+                {
+                    bias = new Bias(table.Rows[0]);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+            }
+
+            return bias;
         }
 
 
-        public static DataTable UsersWithBiasList(string[] biasNames)
+        public static List<UserBias> UsersWithBiasList(string[] biasNames)
         {
             //Stringing together all the names we are searching for
             string checked_names = "";
@@ -247,10 +450,27 @@ namespace Discord_Bot.Modules.Database
                 checked_names += $"`bias`.`biasName` = '{item}'";
             }
 
-            var table = Read($"SELECT DISTINCT `userId` FROM `userbias` INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` WHERE {checked_names};");
+            var table = Read($"SELECT DISTINCT `userId`, `userbias`.`biasId` AS `biasId` FROM `userbias` " +
+                "INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` " +
+                $"WHERE { checked_names};");
 
-            if (table.Rows.Count > 0) { return table; }
-            else return null;
+            List<UserBias> users = new();
+
+            try
+            {
+                foreach (DataRow dr in table.Rows)
+                {
+                    users.Add(new UserBias(dr));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+                users = new();
+            }
+
+            return users;
         }
 
 

@@ -49,8 +49,8 @@ namespace Discord_Bot
                     aTimer.Stop();
                 }
 
-                //Waiting 5 minutes before checking connection again
-                Thread.Sleep(300000);
+                //Waiting 1 minute before checking connection again
+                Thread.Sleep(60000);
             }
         }
 
@@ -66,9 +66,12 @@ namespace Discord_Bot
         public async Task RunBotAsync()
         {
             _client = new DiscordSocketClient(
-                new DiscordSocketConfig() {GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMembers | GatewayIntents.GuildBans | GatewayIntents.GuildEmojis | GatewayIntents.GuildIntegrations | 
-                                           GatewayIntents.GuildWebhooks | GatewayIntents.GuildVoiceStates | GatewayIntents.GuildMessages | GatewayIntents.GuildMessageReactions | 
-                                           GatewayIntents.GuildMessageTyping | GatewayIntents.DirectMessages | GatewayIntents.DirectMessageReactions | GatewayIntents.DirectMessageTyping });
+                new DiscordSocketConfig() { LargeThreshold = 250,
+                                            GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMembers | GatewayIntents.GuildBans | 
+                                            GatewayIntents.GuildEmojis | GatewayIntents.GuildIntegrations | GatewayIntents.GuildWebhooks | 
+                                            GatewayIntents.GuildVoiceStates | GatewayIntents.GuildMessages | GatewayIntents.GuildMessageReactions | 
+                                            GatewayIntents.GuildMessageTyping | GatewayIntents.DirectMessages | GatewayIntents.DirectMessageReactions | 
+                                            GatewayIntents.DirectMessageTyping });
             _commands = new CommandService(new CommandServiceConfig() { DefaultRunMode = RunMode.Async });
             _services = new ServiceCollection()
                 .AddSingleton(_client)
@@ -222,10 +225,10 @@ namespace Discord_Bot
                 //Response to mention
                 if (message.Content.Contains(_client.CurrentUser.Mention) || message.Content.Contains(_client.CurrentUser.Mention.Remove(2, 1)))
                 {
-                    var table = DBFunctions.AllGreeting();
-                    if (table.Rows.Count > 0)
+                    var list = DBFunctions.AllGreeting();
+                    if (list.Count > 0)
                     {
-                        await message.Channel.SendMessageAsync(table.Rows[new Random().Next(0, table.Rows.Count)][1].ToString());
+                        await message.Channel.SendMessageAsync(list[new Random().Next(0, list.Count)].URL);
                     }
                 }
                 //Responses to triggers

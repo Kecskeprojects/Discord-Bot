@@ -69,13 +69,13 @@ namespace Discord_Bot
         //Setting the list of servers we currently have in the database
         public static void ServerList()
         {
-            var table = AllServerSetting();
+            var list = AllServerSetting();
 
-            if (table.Rows.Count > 0)
+            if (list.Count > 0)
             {
-                foreach (DataRow server in table.Rows)
+                foreach (var server in list)
                 {
-                    Global.servers.Add(ulong.Parse(server[0].ToString()), new Server(server));
+                    Global.servers.Add(server.ServerId, new Server(server));
                 }
             }
         }

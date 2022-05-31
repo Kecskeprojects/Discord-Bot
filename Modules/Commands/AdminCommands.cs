@@ -6,7 +6,6 @@ using Discord.Commands;
 using System.IO;
 using Discord_Bot.Modules.ListClasses;
 using Discord_Bot.Modules.Database;
-using System.Data;
 
 namespace Discord_Bot.Modules.Commands
 {
@@ -351,9 +350,9 @@ namespace Discord_Bot.Modules.Commands
             try
             {
                 string[] array = keyword_response[1..^1].Split("` `");
-                var row = DBFunctions.KeywordGet(Context.Guild.Id, array[0]);
+                var keyword = DBFunctions.KeywordGet(Context.Guild.Id, array[0]);
 
-                if(row != null)
+                if(keyword != null)
                 {
                     //Add keyword to database
                     if (DBFunctions.KeywordAdd(Context.Guild.Id, array[0], array[1]) > 0) 

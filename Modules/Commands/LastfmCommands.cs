@@ -14,14 +14,14 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                if (DBFunctions.LastfmGet(Context.User.Id) != null)
+                if (DBFunctions.LastfmUserGet(Context.User.Id) != null)
                 {
                     await ReplyAsync("you have a lastfm account connected to your discord account already!");
                     return;
                 }
                 else
                 {
-                    if (DBFunctions.LastfmAdd(Context.User.Id, name) > 0) await ReplyAsync("Username " + name + " connected to account!");
+                    if (DBFunctions.LastfmUserAdd(Context.User.Id, name) > 0) await ReplyAsync("Username " + name + " connected to account!");
                     else await ReplyAsync("Lastfm account could not be connected to account!");
                 }
             }
@@ -40,7 +40,7 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                if (DBFunctions.LastfmRemove(Context.User.Id) > 0)
+                if (DBFunctions.LastfmUserRemove(Context.User.Id) > 0)
                 {
                     await ReplyAsync("Last.fm has been disconnected from your account!");
                 }
@@ -61,12 +61,11 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                var row = DBFunctions.LastfmGet(Context.User.Id);
+                var user = DBFunctions.LastfmUserGet(Context.User.Id);
 
-                if (row != null)
+                if (user != null)
                 {
-                    string username = row[1].ToString();
-                    if (parameters.Length == 0) await LastfmAPI.TopTracks(Context, username, 10, "overall");
+                    if (parameters.Length == 0) await LastfmAPI.TopTracks(Context, user.Username, 10, "overall");
                     else
                     {
                         try { parameters = LastfmFunctions.TopLastfmCheck(parameters); }
@@ -75,7 +74,7 @@ namespace Discord_Bot.Modules.Commands
                         int limit = int.Parse(parameters[0]);
                         string period = parameters[1];
 
-                        await LastfmAPI.TopTracks(Context, username, limit, period);
+                        await LastfmAPI.TopTracks(Context, user.Username, limit, period);
                     }
                 }
                 else await ReplyAsync("You have yet to connect a username to your discord account. Use the !lf conn command to do so!");
@@ -95,12 +94,11 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                var row = DBFunctions.LastfmGet(Context.User.Id);
+                var user = DBFunctions.LastfmUserGet(Context.User.Id);
 
-                if (row != null)
+                if (user != null)
                 {
-                    string username = row[1].ToString();
-                    if (parameters.Length == 0) await LastfmAPI.TopAlbums(Context, username, 10, "overall");
+                    if (parameters.Length == 0) await LastfmAPI.TopAlbums(Context, user.Username, 10, "overall");
                     else
                     {
                         try { parameters = LastfmFunctions.TopLastfmCheck(parameters); }
@@ -109,7 +107,7 @@ namespace Discord_Bot.Modules.Commands
                         int limit = int.Parse(parameters[0]);
                         string period = parameters[1];
 
-                        await LastfmAPI.TopAlbums(Context, username, limit, period);
+                        await LastfmAPI.TopAlbums(Context, user.Username, limit, period);
                     }
                 }
                 else await ReplyAsync("You have yet to connect a username to your discord account. Use the !lf conn [username] command to do so!");
@@ -129,12 +127,11 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                var row = DBFunctions.LastfmGet(Context.User.Id);
+                var user = DBFunctions.LastfmUserGet(Context.User.Id);
 
-                if (row != null)
+                if (user != null)
                 {
-                    string username = row[1].ToString();
-                    if (parameters.Length == 0) await LastfmAPI.TopArtists(Context, username, 10, "overall");
+                    if (parameters.Length == 0) await LastfmAPI.TopArtists(Context, user.Username, 10, "overall");
                     else
                     {
                         try { parameters = LastfmFunctions.TopLastfmCheck(parameters); }
@@ -143,7 +140,7 @@ namespace Discord_Bot.Modules.Commands
                         int limit = int.Parse(parameters[0]);
                         string period = parameters[1];
 
-                        await LastfmAPI.TopArtists(Context, username, limit, period);
+                        await LastfmAPI.TopArtists(Context, user.Username, limit, period);
                     }
 
                 }
@@ -164,14 +161,11 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                var row = DBFunctions.LastfmGet(Context.User.Id);
+                var user = DBFunctions.LastfmUserGet(Context.User.Id);
 
-                if (row != null)
+                if (user != null)
                 {
-                    string username = row[1].ToString();
-
-                    await LastfmAPI.NowPlaying(Context, username);
-
+                    await LastfmAPI.NowPlaying(Context, user.Username);
                 }
                 else await ReplyAsync("You have yet to connect a username to your discord account. Use the !lf conn [username] command to do so!");
             }
@@ -190,13 +184,11 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                var row = DBFunctions.LastfmGet(Context.User.Id);
+                var user = DBFunctions.LastfmUserGet(Context.User.Id);
 
-                if (row != null)
+                if (user != null)
                 {
-                    string username = row[1].ToString();
-
-                    await LastfmAPI.Recents(Context, username, limit);
+                    await LastfmAPI.Recents(Context, user.Username, limit);
                 }
                 else await ReplyAsync("You have yet to connect a username to your discord account. Use the !lf conn [username] command to do so!");
             }
@@ -215,13 +207,11 @@ namespace Discord_Bot.Modules.Commands
         {
             try
             {
-                var row = DBFunctions.LastfmGet(Context.User.Id);
+                var user = DBFunctions.LastfmUserGet(Context.User.Id);
 
-                if (row != null)
+                if (user != null)
                 {
-                    string username = row[1].ToString();
-
-                    await LastfmAPI.Artist(Context, username, artist);
+                    await LastfmAPI.Artist(Context, user.Username, artist);
                 }
                 else await ReplyAsync("You have yet to connect a username to your discord account. Use the !lf conn [username] command to do so!");
             }
