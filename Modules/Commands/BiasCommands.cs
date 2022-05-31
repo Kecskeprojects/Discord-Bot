@@ -326,7 +326,9 @@ namespace Discord_Bot.Modules.Commands
                 {
                     //Get the user ids that have this set as their bias
                     var users = DBFunctions.UsersWithBiasList(nameList);
-                    
+
+                    await Context.Guild.DownloadUsersAsync();
+
                     string message = "";
 
                     //Make a list of mentions out of them

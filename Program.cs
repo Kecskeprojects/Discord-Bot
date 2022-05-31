@@ -66,8 +66,7 @@ namespace Discord_Bot
         public async Task RunBotAsync()
         {
             _client = new DiscordSocketClient(
-                new DiscordSocketConfig() { LargeThreshold = 250,
-                                            GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMembers | GatewayIntents.GuildBans | 
+                new DiscordSocketConfig() {GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMembers | GatewayIntents.GuildBans | 
                                             GatewayIntents.GuildEmojis | GatewayIntents.GuildIntegrations | GatewayIntents.GuildWebhooks | 
                                             GatewayIntents.GuildVoiceStates | GatewayIntents.GuildMessages | GatewayIntents.GuildMessageReactions | 
                                             GatewayIntents.GuildMessageTyping | GatewayIntents.DirectMessages | GatewayIntents.DirectMessageReactions | 
