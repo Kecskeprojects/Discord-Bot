@@ -157,7 +157,6 @@ namespace Discord_Bot
             //In case the message was a system message (eg. the message seen when someone a pin is made), a webhook's or a bot's message, the function stops
             if (arg.Source == MessageSource.System || arg.Source == MessageSource.Webhook || arg.Source == MessageSource.Bot) return;
 
-
             var message = arg as SocketUserMessage;
             var context = new SocketCommandContext(_client, message);
             int argPos = 0;
@@ -166,7 +165,6 @@ namespace Discord_Bot
             //Check if the message is an embed or not
             if (message.Content.Length < 1) return;
             else Global.Logs.Add(new Log("MES_USER", message.Content));
-
 
             //If message is not private message, and the server is not on the list, add it to the database and the list
             if (message.Channel.GetChannelType() != ChannelType.DM && !Global.servers.ContainsKey(context.Guild.Id))

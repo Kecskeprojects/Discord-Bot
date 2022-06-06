@@ -58,6 +58,7 @@ namespace Discord_Bot.Modules.Commands.Audio
         {
             try
             {
+                //If function returns false, it means it could not connect correctly for some reason
                 if (!await ConnectBot(context, sId)) return;
 
                 while (Global.servers[sId].MusicRequests.Count > 0)

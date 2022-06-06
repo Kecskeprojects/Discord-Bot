@@ -15,50 +15,25 @@ namespace Discord_Bot.Modules.Commands.Audio
             ulong sId = context.Guild.Id;
             try
             {
-                //Check video  restriction
-                if (!CheckVideo(context, url)) return;
+                Global.servers[sId].AudioVars.FFmpeg = CreateYoutubeStream(url);
+                Global.servers[sId].AudioVars.Output = Global.servers[sId].AudioVars.FFmpeg.StandardOutput.BaseStream;
 
-                //Looping in case video could not play correctly the first time
-                //In most cases, it only runs once, this is done for edge cases,
-                //to a maximum of 3 loops, which seems to be more than enough
-                int count = 0;
-                while (count < 3)
+                Global.servers[sId].AudioVars.Stopwatch = Stopwatch.StartNew();
+
+                //Audio streaming
+                using (Global.servers[sId].AudioVars.Discord = client.CreatePCMStream(AudioApplication.Mixed, Global.Config.Bitrate, 2000))
                 {
-                    Global.servers[sId].AudioVars.FFmpeg = CreateYoutubeStream(url);
-                    Global.servers[sId].AudioVars.Output = Global.servers[sId].AudioVars.FFmpeg.StandardOutput.BaseStream;
+                    Console.WriteLine("[" + Global.Current_Time() + "]: Audio stream starting!");
+                    Global.Logs.Add(new Log("LOG", "Audio stream starting!"));
 
-                    Global.servers[sId].AudioVars.Stopwatch = Stopwatch.StartNew();
+                    await Global.servers[sId].AudioVars.Output.CopyToAsync(Global.servers[sId].AudioVars.Discord);
+                    await Global.servers[sId].AudioVars.Discord.FlushAsync();
+                };
 
-                    //Audio streaming
-                    using (Global.servers[sId].AudioVars.Discord = client.CreatePCMStream(AudioApplication.Mixed, Global.Config.Bitrate, 2000))
-                    {
-                        Console.WriteLine("[" + Global.Current_Time() + "]: Audio stream starting!");
-                        Global.Logs.Add(new Log("LOG", "Audio stream starting!"));
-
-                        await Global.servers[sId].AudioVars.Output.CopyToAsync(Global.servers[sId].AudioVars.Discord);
-                        await Global.servers[sId].AudioVars.Discord.FlushAsync();
-                    };
-
-                    Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
-
-                    //In case yt-dlp comes back with an exit code of 1,
-                    //Do not exit the loop, in any other case, exit the loop,
-                    //the reason for it returning with 1 is unknown but it does it seemingly randomly
-                    if (Global.servers[sId].AudioVars.FFmpeg.ExitCode != 0 && count < 3)
-                    {
-                        Console.WriteLine("Something went wrong with the ffmpeg process! EXIT CODE: " + Global.servers[sId].AudioVars.FFmpeg.ExitCode + " Tries: " + (count + 1));
-                        Global.Logs.Add(new Log("WARNING", "Something went wrong with the ffmpeg process! EXIT CODE: " + Global.servers[sId].AudioVars.FFmpeg.ExitCode + " Tries: " + (count + 1)));
-                        if (Global.servers[sId].AudioVars.FFmpeg.ExitCode == 1)
-                        {
-                            count++;
-                            continue;
-                        }
-                    }
-                    break;
-                }
+                Global.servers[sId].AudioVars.FFmpeg.WaitForExit();
             }
             //Exception thrown with current version of skipping song
-            catch(ObjectDisposedException)
+            catch (ObjectDisposedException)
             {
                 Console.WriteLine("Exception throw when skipping song!");
                 Global.Logs.Add(new Log("LOG", "Exception throw when skipping song!"));
@@ -105,53 +80,6 @@ namespace Discord_Bot.Modules.Commands.Audio
             Console.WriteLine("Yt-dlp audio stream created for '" + url + "' !");
             Global.Logs.Add(new Log("LOG", "Yt-dlp audio stream created for '" + url + "' !"));
             return Process.Start(ffmpeg);
-        }
-
-
-
-        //Check the video before playing it, to root out age and country restricted content
-        //Returns true if video is downloadable, false if not
-        private static bool CheckVideo(SocketCommandContext context, string url)
-        {
-            Process process = new()
-            {
-                StartInfo = new ProcessStartInfo()
-                {
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    FileName = "cmd.exe",
-                    Arguments = $@"/C yt-dlp.exe --no-check-certificate -F {url}",
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true
-                }
-            };
-            process.Start();
-
-            string Error = process.StandardError.ReadToEnd();
-
-            process.WaitForExit();
-
-            //If the error stream is empty, return true, else, send back the issue to the user
-            if (Error.Length == 0) return true;
-            else
-            {
-                if (Error.Contains("ERROR: Sign in to confirm your age"))
-                {
-                    context.Channel.SendMessageAsync("This video is age restricted, song skipped!");
-                    Global.Logs.Add(new Log("LOG", "This video is age restricted, song skipped!"));
-                }
-                else if (Error.Contains("ERROR: The uploader has not made this video available in your country."))
-                {
-                    context.Channel.SendMessageAsync("This video is country-restricted in the bot's current location!");
-                    Global.Logs.Add(new Log("LOG", "This video is country-restricted in the bot's current location!"));
-                }
-                else
-                {
-                    Console.WriteLine(Error);
-                    Global.Logs.Add(new Log("DEV", "AudioService.cs CheckVideo", Error));
-                }
-                return false;
-            }
         }
     }
 }

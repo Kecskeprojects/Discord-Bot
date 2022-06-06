@@ -90,19 +90,26 @@ namespace Discord_Bot.Modules.API
                 //If the link is a regular youtube link, but has "watch", it is a single video's link
                 else if (query.Contains("watch"))
                 {
-                    //If it has a '&' symbol. it potentially has a playlist_id or a timestamp in it that we have to cut off
+                    //If it has a '&' symbol. it potentially has a playlist_id or some other url parts
                     string playlist_id = "";
                     if (query.Contains('&'))
                     {
-                        //Check if it is a timestamp(it is always after the playlist link),
-                        //if it isn't, cut off the "list=" part, and we have the playlist link, and cut off the timestamp, if it had any
-                        if (!query.Split('&')[1].StartsWith("t="))
+                        //Check if it is contains a list id
+                        if (query.Contains("list="))
                         {
-                            playlist_id = query.Split('&')[1][5..];
-                            query = query.Split('&')[0];
+                            //Cut it into parts and go through them
+                            string[] parts = query.Split("&");
+                            foreach (var item in parts)
+                            {
+                                //If we found the one with the list id, save it
+                                if (item.StartsWith("list="))
+                                {
+                                    playlist_id = item[5..];
+                                }
+                            }
                         }
-                        //if it starts with a timestamp, simply cut it off, it does not have a playlist id
-                        else query = query.Split('&')[0];
+                        //Cut off the extra parts beyond the video link
+                        query = query.Split('&')[0];
                     }
                     //Cut off the "v=" part of the video id
                     query = query[(query.IndexOf("v=") + 2)..];
