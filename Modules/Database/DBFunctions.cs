@@ -439,7 +439,7 @@ namespace Discord_Bot.Modules.Database
         }
 
 
-        public static List<UserBias> UsersWithBiasList(string[] biasNames)
+        public static List<ulong> UsersWithBiasList(string[] biasNames)
         {
             //Stringing together all the names we are searching for
             string checked_names = "";
@@ -450,17 +450,17 @@ namespace Discord_Bot.Modules.Database
                 checked_names += $"`bias`.`biasName` = '{item}'";
             }
 
-            var table = Read($"SELECT DISTINCT `userId`, `userbias`.`biasId` AS `biasId` FROM `userbias` " +
+            var table = Read($"SELECT DISTINCT `userId` FROM `userbias` " +
                 "INNER JOIN `bias` ON `userbias`.`biasId` = `bias`.`biasId` " +
                 $"WHERE { checked_names};");
 
-            List<UserBias> users = new();
+            List<ulong> users = new();
 
             try
             {
                 foreach (DataRow dr in table.Rows)
                 {
-                    users.Add(new UserBias(dr));
+                    users.Add(ulong.Parse(dr[0].ToString()));
                 }
             }
             catch (Exception ex)

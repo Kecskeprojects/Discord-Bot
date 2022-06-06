@@ -334,7 +334,7 @@ namespace Discord_Bot.Modules.Commands
                     //Make a list of mentions out of them
                     foreach (var userbias in users)
                     {
-                        ulong id = userbias.UserId;
+                        ulong id = userbias;
 
                         //Find user on server
                         var user = Context.Guild.GetUser(id);
