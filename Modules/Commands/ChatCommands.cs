@@ -138,14 +138,18 @@ namespace Discord_Bot.Modules.Commands
                 {
                     //Convert date to local timezone
                     DateTime ConvertedDate = TimeZoneInfo.ConvertTime(date.ToUniversalTime(), TimeZoneInfo.Local);
-                    
-                    //Format date to sql compatible form
-                    string sqlDateString = ConvertedDate.ToString("yyyy-MM-dd HH:mm");
 
-                    //Add reminder to database
-                    DBFunctions.ReminderAdd(Context.User.Id, sqlDateString, remindMessage);
+                    //Check if date is not already in the past
+                    if (DateTime.Compare(ConvertedDate, DateTime.Now) > 0)
+                    {
+                        //Format date to sql compatible form
+                        string sqlDateString = ConvertedDate.ToString("yyyy-MM-dd HH:mm");
 
-                    await ReplyAsync($"Alright, I will remind you at `{ConvertedDate}`!");
+                        //Add reminder to database
+                        DBFunctions.ReminderAdd(Context.User.Id, sqlDateString, remindMessage);
+
+                        await ReplyAsync($"Alright, I will remind you at `{ConvertedDate}`!");
+                    }
                 }
                 else
                 {
