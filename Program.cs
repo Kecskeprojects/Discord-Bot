@@ -25,7 +25,7 @@ namespace Discord_Bot
             //Constant timer, only stopping when the Bot's process stops
             System.Timers.Timer aTimer = new(60000) { AutoReset = true }; //1 minute
 
-            aTimer.Elapsed += new ElapsedEventHandler(StartupFunctions.OnTimedEvent);
+            aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
 
             while (true)
             {
@@ -56,7 +56,7 @@ namespace Discord_Bot
 
 
 
-        private DiscordSocketClient _client;
+        private static DiscordSocketClient _client;
         private CommandService _commands;
         private IServiceProvider _services;
 
@@ -98,7 +98,30 @@ namespace Discord_Bot
 
             await Task.Delay(-1);
         }
-        
+
+
+
+        //Repeated operations
+        static int minutes_count = 0;
+        public static async void OnTimedEvent(object source, ElapsedEventArgs e)
+        {
+            //Database backup function
+            if (minutes_count == 1440) minutes_count = 0;
+            if (minutes_count == 0) ProgramFunctions.DatabaseBackup();
+            minutes_count++;
+
+            //Youtube api key reset function
+            if (DateTime.Now.Hour == 10 && DateTime.Now.Minute == 0) YoutubeAPI.KeyReset();
+
+            //Logging function
+            ProgramFunctions.LogToFile();
+
+            //Reminder function
+            _ = ProgramFunctions.ReminderCheck(_client);
+
+            await Task.CompletedTask;
+        }
+
 
 
         //Client Messages

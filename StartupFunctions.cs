@@ -5,10 +5,7 @@ using System;
 using System.Data;
 using System.Data.SQLite;
 using System.IO;
-using System.Timers;
-using System.Threading.Tasks;
 using System.Linq;
-using Discord_Bot.Modules.API;
 
 namespace Discord_Bot
 {
@@ -132,82 +129,12 @@ namespace Discord_Bot
 
 
 
-        //What the bot does every minute
-        static int minutes_count = 0;
-        public static async void OnTimedEvent(object source, ElapsedEventArgs e)
-        {
-            if (minutes_count == 1440) minutes_count = 0;
-
-            if (minutes_count == 0) DatabaseBackup();
-
-            if (DateTime.Now.Hour == 10 && DateTime.Now.Minute == 0) YoutubeAPI.KeyReset();
-
-            LogToFile();
-
-            minutes_count++;
-
-            await Task.CompletedTask;
-        }
-
-
-
         //Things to do when app is closing
         //3 second time limit to event by default
         public static void Closing(object sender, EventArgs e)
         {
             Global.Logs.Add(new Log("LOG", "Application closing..."));
-            LogToFile();
-        }
-
-
-
-        //For logging messages, errors, and messages to log files
-        static StreamWriter LogFile_writer = null;
-        public static void LogToFile()
-        {
-            try
-            {
-                if (Global.Logs.Count != 0 && LogFile_writer == null)
-                {
-                    string file_location = "Logs\\logs" + "[" + DateTime.Now.Year + "-" + (DateTime.Now.Month < 10 ? "0" + DateTime.Now.Month.ToString() : DateTime.Now.Month.ToString()) + "-" + (DateTime.Now.Day < 10 ? "0" + DateTime.Now.Day.ToString() : DateTime.Now.Day.ToString()) + "].txt";
-
-                    using (LogFile_writer = File.AppendText(file_location)) foreach (string log in Global.Logs.Select(n => n.Content)) LogFile_writer.WriteLine(log);
-
-                    LogFile_writer = null;
-                    Global.Logs.Clear();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "StartupFunctions.cs LogtoFile", ex.ToString()));
-            }
-        }
-
-
-
-        //Copy database to Assets\Data folder, done once a day and a minute after starting the bot
-        public static void DatabaseBackup()
-        {
-            try
-            {
-                File.Copy("database.db", Path.Combine(Directory.GetCurrentDirectory(),
-                    $"Assets\\Data\\database_"
-                    + (DateTime.Now.Year < 10 ? "0" + DateTime.Now.Year : DateTime.Now.Year) 
-                    + (DateTime.Now.Month < 10 ? "0" + DateTime.Now.Month : DateTime.Now.Month)
-                    + (DateTime.Now.Day < 10 ? "0" + DateTime.Now.Day : DateTime.Now.Day)
-                    + (DateTime.Now.Hour < 10 ? "0" + DateTime.Now.Hour : DateTime.Now.Hour) 
-                    + (DateTime.Now.Minute < 10 ? "0" + DateTime.Now.Minute : DateTime.Now.Minute) 
-                    + ".db"));
-                Console.WriteLine("Database backup created!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                Global.Logs.Add(new Log("DEV", ex.Message));
-                Global.Logs.Add(new Log("ERROR", "Program_Functions.cs Log OnTimedEvent", ex.ToString()));
-            }
+            ProgramFunctions.LogToFile();
         }
     }
 }

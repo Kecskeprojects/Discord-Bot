@@ -492,6 +492,45 @@ namespace Discord_Bot.Modules.Database
 
 
         //
+        //REMINDER database commands
+        //
+
+        public static List<Reminder> ReminderList(string date)
+        {
+            var table = Read($"SELECT `userId`, `date`, `message` FROM `reminder` WHERE `date` <= '{date}';");
+
+            List<Reminder> reminders = new();
+
+            try
+            {
+                foreach (DataRow dr in table.Rows)
+                {
+                    reminders.Add(new Reminder(dr));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+                reminders = new();
+            }
+
+            return reminders;
+        }
+
+
+        public static int ReminderAdd(ulong userId, string date, string message)
+        {
+            return Insert($"INSERT INTO `reminder` (`userId`,`date`,`message`) VALUES ('{userId}','{date}','{message}');");
+        }
+
+        public static int ReminderRemove(ulong userId, string date)
+        {
+            return Delete($"DELETE FROM `reminder` WHERE `date` = '{date}' AND `userId` = '{userId}';");
+        }
+
+
+        //
         //MANUAL DB FUNCTION
         //
 
