@@ -17,7 +17,7 @@
     <PackageReference Include="Discord.Net" Version="3.7.2" />
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.57.0.2693" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-    <PackageReference Include="RestSharp" Version="107.3.0" />
+    <PackageReference Include="RestSharp" Version="108.0.1" />
     <PackageReference Include="SpotifyAPI.Web" Version="6.2.2" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.116" />
     <PackageReference Include="TwitchLib" Version="3.3.0" />

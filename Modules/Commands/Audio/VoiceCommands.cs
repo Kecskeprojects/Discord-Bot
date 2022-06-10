@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Xml;
 using Discord;
@@ -233,6 +234,48 @@ namespace Discord_Bot.Modules.Commands.Audio
             Global.Logs.Add(new Log("LOG", "`" + Global.servers[sId].MusicRequests[position].Title + "` has been removed from the playlist!"));
 
             Global.servers[sId].MusicRequests.RemoveAt(position);
+        }
+
+
+        //Shuffle the current playlist
+        [Command("shuffle")]
+        [RequireContext(ContextType.Guild)]
+        public async Task Shuffle()
+        {
+            try
+            {
+                //Get the server's playlist, and remove the currently playing song, but saving it for later
+                List<MusicRequest> current = Global.servers[Context.Guild.Id].MusicRequests;
+                MusicRequest nowPlaying = current[0];
+                current.RemoveAt(0);
+
+                List<MusicRequest> shuffled = new();
+                int length = current.Count;
+                Random r = new();
+
+                //Go through the entire playlist once
+                for (int i = 0; i < length; i++)
+                {
+                    //generate a random number, accounting for the slowly depleting current playlist
+                    int index = r.Next(0, current.Count);
+
+                    //Adding the randomly chosen song and removing it from the original list
+                    shuffled.Add(current[index]);
+                    current.RemoveAt(index);
+                }
+
+                //Adding back the currently playing song to the beginning and switching it out with the unshuffled one
+                shuffled.Insert(0, nowPlaying);
+                Global.servers[Context.Guild.Id].MusicRequests = shuffled;
+
+                await ReplyAsync("Shuffle complete!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "VoiceCommands.cs Shuffle", ex.ToString()));
+            }
         }
     }
 }
