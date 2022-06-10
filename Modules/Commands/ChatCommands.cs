@@ -149,6 +149,8 @@ namespace Discord_Bot.Modules.Commands
                         DBFunctions.ReminderAdd(Context.User.Id, sqlDateString, remindMessage);
 
                         await ReplyAsync($"Alright, I will remind you at `{ConvertedDate}`!");
+
+                        return;
                     }
                 }
                 else
@@ -166,9 +168,13 @@ namespace Discord_Bot.Modules.Commands
                             DBFunctions.ReminderAdd(Context.User.Id, sqlDateString, remindMessage);
 
                             await ReplyAsync($"Alright, I will remind you at `{date}`!");
+
+                            return;
                         }
                     }
                 }
+
+                await ReplyAsync("Invalit input format, the order is the following:\n`[year].[month].[day] [hour]:[minute] +-[timezone]`\nYear, hour, minute are optional unless using timezones!");
             }
             catch (Exception ex)
             {
@@ -250,6 +256,68 @@ namespace Discord_Bot.Modules.Commands
                 Global.Logs.Add(new Log("ERROR", "ChatCommands.cs RemindIn", ex.ToString()));
             }
 
+        }
+
+
+
+        //Remove a reminder from their list of reminders
+        [Command("remind list")]
+        public async Task RemindList()
+        {
+            try
+            {
+                var list = DBFunctions.UserReminders(Context.User.Id);
+
+                if(list.Count > 0)
+                {
+                    EmbedBuilder builder = new();
+                    builder.WithTitle("Your reminders:");
+
+                    int i = 1;
+                    foreach (var reminder in list)
+                    {
+                        builder.AddField($"{i}.  {reminder.Date}", reminder.Message);
+                        i++;
+                    }
+
+                    await ReplyAsync("", false, builder.Build());
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "ChatCommands.cs RemindList", ex.ToString()));
+            }
+        }
+
+
+
+        //Remove a reminder from the user's list of reminders
+        [Command("remind remove")]
+        public async Task RemindRemove(int index)
+        {
+            try
+            {
+                var list = DBFunctions.UserReminders(Context.User.Id);
+
+                if (list.Count > 0 && list.Count >= index)
+                {
+                    var reminder = list[index - 1];
+
+                    if (DBFunctions.ReminderRemove(Context.User.Id, reminder.Date.ToString("yyyy-MM-dd HH:mm")) > 0)
+                    {
+                        await ReplyAsync($"Reminder with the date {reminder.Date} has been removed!");
+                    }
+                    else await ReplyAsync("Reminder could not be removed!");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "ChatCommands.cs RemindRemove", ex.ToString()));
+            }
         }
     }
 }

@@ -363,7 +363,6 @@ namespace Discord_Bot.Modules.Database
             return bias;
         }
 
-
         public static int BiasAdd(int biasId, string biasName, string biasGroup)
         {
             return Insert($"INSERT INTO `bias` (`biasId`,`biasName`,`biasGroup`) VALUES ('{biasId}','{biasName}','{biasGroup}');");
@@ -498,6 +497,30 @@ namespace Discord_Bot.Modules.Database
         public static List<Reminder> ReminderList(string date)
         {
             var table = Read($"SELECT `userId`, `date`, `message` FROM `reminder` WHERE `date` <= '{date}';");
+
+            List<Reminder> reminders = new();
+
+            try
+            {
+                foreach (DataRow dr in table.Rows)
+                {
+                    reminders.Add(new Reminder(dr));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+                reminders = new();
+            }
+
+            return reminders;
+        }
+
+
+        public static List<Reminder> UserReminders(ulong userId)
+        {
+            var table = Read($"SELECT `userId`, `date`, `message` FROM `reminder` WHERE `userId` = '{userId}' ORDER BY `date` ASC;");
 
             List<Reminder> reminders = new();
 
