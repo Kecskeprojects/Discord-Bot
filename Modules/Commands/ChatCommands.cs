@@ -136,13 +136,16 @@ namespace Discord_Bot.Modules.Commands
                 //Try parsing date into an exact format, in which case one can write timezones
                 if (DateTime.TryParseExact(datestring, "yy.MM.dd HH:mm z", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime date))
                 {
+                    //Convert date to local timezone
+                    DateTime ConvertedDate = TimeZoneInfo.ConvertTime(date.ToUniversalTime(), TimeZoneInfo.Local);
+                    
                     //Format date to sql compatible form
-                    string sqlDateString = date.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+                    string sqlDateString = ConvertedDate.ToString("yyyy-MM-dd HH:mm");
 
                     //Add reminder to database
                     DBFunctions.ReminderAdd(Context.User.Id, sqlDateString, remindMessage);
 
-                    await ReplyAsync($"Alright, I will remind you at `{date}`!");
+                    await ReplyAsync($"Alright, I will remind you at `{ConvertedDate}`!");
                 }
                 else
                 {
