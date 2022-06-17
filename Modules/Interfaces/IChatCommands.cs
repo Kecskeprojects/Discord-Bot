@@ -14,5 +14,17 @@ namespace Discord_Bot.Modules.Interfaces
 
         [Command("help")]
         public Task Help();
+
+        [Command("remind at")]
+        public Task RemindAt([Remainder] string message);
+
+        [Command("remind in")]
+        public Task RemindIn([Remainder] string message);
+
+        [Command("remind list")]
+        public Task RemindList();
+
+        [Command("remind remove")]
+        public Task RemindRemove(int index);
     }
 }

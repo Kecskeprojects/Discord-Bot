@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -186,13 +187,50 @@ namespace Discord_Bot.Modules.Commands
 
         //Adding reminding messages to database via amounts of time from current date
         [Command("remind in")]
-        public async Task RemindIn(int amount, string type, [Remainder] string remindMessage)
+        public async Task RemindIn([Remainder] string message)
         {
             try
             {
-                //Remove the > symbol in case it is there, clear trailing whitespaces
-                if (remindMessage.StartsWith(">")) remindMessage = remindMessage[1..];
-                remindMessage = remindMessage.Trim();
+                //Take the message apart and clear trailing whitespaces
+                string amountstring = message.Split(">")[0].Trim();
+                string remindMessage = message.Split(">")[1].Trim();
+
+                //Split amounts into a string list, accounting for accidental spaces
+                List<string> amounts = amountstring.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+
+                //Go through every element in the list and check
+                //if the user missed a space between the number and the corresponding type
+                for(int i = 0; i < amounts.Count; i++)
+                {
+                    //Don't check if the element is a number in itself
+                    if (!int.TryParse(amounts[i], out _))
+                    {
+                        char[] chars = amounts[i].ToCharArray();
+                        int lastValid = -1;
+
+                        //Go through the array of chars one by one
+                        //until a non number is found, in which case we exit the loop
+                        for (int j = 0; j < chars.Length; j++)
+                        {
+                            if (char.IsDigit(chars[j]))
+                            {
+                                lastValid = j;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+
+                        //If any numbers were found in the array,
+                        //we rewrite original string and put the number part of it into the list
+                        if (lastValid >= 0)
+                        {
+                            amounts[i] = amounts[i][(lastValid + 1)..];
+                            amounts.Insert(i, new string(chars, 0, lastValid + 1));
+                        }
+                    }
+                }
 
                 //Length check, the message row of the database only accepts lengths of up to 150
                 if (remindMessage.Length > 150)
@@ -203,51 +241,70 @@ namespace Discord_Bot.Modules.Commands
 
                 //Check what lengths of time we need to deal with and add it to the current date
                 DateTime date = DateTime.Now;
-                switch (type)
+                
+                //Check if amounts has an even amount of elements, meaning every number has it's type pair and vice versa
+                if(amounts.Count % 2 == 0)
                 {
-                    case "year":
-                    case "years":
+                    //Go through the list 2 elements at a time
+                    for (int i = 0; i < amounts.Count; i += 2)
+                    {
+                        //The first element is the number, the second is the type, meaning day, month, year...
+                        int amount = int.Parse(amounts[i]);
+                        string type = amounts[i + 1];
+
+                        //Add the appropriate amount of time
+                        switch (type)
                         {
-                            date = date.AddYears(amount);
-                            break;
+                            case "year":
+                            case "years":
+                                {
+                                    date = date.AddYears(amount);
+                                    break;
+                                }
+                            case "month":
+                            case "months":
+                                {
+                                    date = date.AddMonths(amount);
+                                    break;
+                                }
+                            case "day":
+                            case "days":
+                                {
+                                    date = date.AddDays(amount);
+                                    break;
+                                }
+                            case "hour":
+                            case "hours":
+                                {
+                                    date = date.AddHours(amount);
+                                    break;
+                                }
+                            case "minute":
+                            case "minutes":
+                                {
+                                    date = date.AddMinutes(amount);
+                                    break;
+                                }
+                            default:
+                                {
+                                    return;
+                                }
                         }
-                    case "month":
-                    case "months":
-                        {
-                            date = date.AddMonths(amount);
-                            break;
-                        }
-                    case "day":
-                    case "days":
-                        {
-                            date = date.AddDays(amount);
-                            break;
-                        }
-                    case "hour":
-                    case "hours":
-                        {
-                            date = date.AddHours(amount);
-                            break;
-                        }
-                    case "minute":
-                    case "minutes":
-                        {
-                            date = date.AddMinutes(amount);
-                            break;
-                        }
-                    default:
-                        {
-                            return;
-                        }
+                    }
+
+                    //Format date to sql compatible form
+                    string sqlDateString = date.ToString("yyyy-MM-dd HH:mm");
+
+                    //Add reminder to database
+                    DBFunctions.ReminderAdd(Context.User.Id, sqlDateString, remindMessage);
+
+                    await ReplyAsync($"Alright, I will remind you at `{date}`!");
                 }
-
-                //Format date to sql compatible form
-                string sqlDateString = date.ToString("yyyy-MM-dd HH:mm");
-
-                //Add reminder to database
-                DBFunctions.ReminderAdd(Context.User.Id, sqlDateString, remindMessage);
-
-                await ReplyAsync($"Alright, I will remind you at `{date}`!");
+                else
+                {
+                    await ReplyAsync("Incorrect number of inputs!");
+                }
+                
             }
             catch (Exception ex)
             {
