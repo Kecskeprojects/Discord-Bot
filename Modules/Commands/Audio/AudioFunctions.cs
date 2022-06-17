@@ -65,7 +65,7 @@ namespace Discord_Bot.Modules.Commands.Audio
                 {
                     if((await context.Channel.GetUserAsync(context.Client.CurrentUser.Id) as IGuildUser).VoiceChannel == null)
                     {
-                        await Task.Delay(1000);
+                        await Task.Delay(2500);
                         if (!await ConnectBot(context, sId)) return;
                     }
 
