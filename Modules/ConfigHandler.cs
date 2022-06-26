@@ -18,6 +18,8 @@ namespace Discord_Bot.Modules
             public string lastfm_API_Key;
             public string lastfm_API_Secret;
             public string[] youtube_API_Keys;
+            public string instagram_Username;
+            public string instagram_Password;
         }
 
         private Config conf = new()
@@ -30,7 +32,9 @@ namespace Discord_Bot.Modules
             spotify_Client_Secret = "",
             lastfm_API_Key = "",
             lastfm_API_Secret = "",
-            youtube_API_Keys = Array.Empty<string>()
+            youtube_API_Keys = Array.Empty<string>(),
+            instagram_Username = "",
+            instagram_Password = ""
         };
 
         public ConfigHandler()
@@ -68,5 +72,9 @@ namespace Discord_Bot.Modules
         public string Lastfm_API_Secret { get { return conf.lastfm_API_Secret; } }
 
         public string[] Youtube_API_Keys { get { return conf.youtube_API_Keys; } }
+
+        public string Instagram_Username { get { return conf.instagram_Username; } }
+
+        public string Instagram_Password { get { return conf.instagram_Password; } }
     }
 }

@@ -9,6 +9,8 @@ using Discord_Bot.Modules.Database;
 using System.IO;
 using Discord.WebSocket;
 using System.Linq;
+using Discord_Bot.Modules.API;
+using System.Collections.Generic;
 
 namespace Discord_Bot
 {
@@ -207,6 +209,78 @@ namespace Discord_Bot
                 Console.WriteLine(ex.ToString());
                 Global.Logs.Add(new Log("DEV", ex.Message));
                 Global.Logs.Add(new Log("ERROR", "ProgramFunctions.cs Log ReminderCheck", ex.ToString()));
+            }
+        }
+
+
+
+        //Check if message is an instagram link and has an embed or not
+        public static async Task InstagramEmbed(SocketCommandContext context)
+        {
+            try
+            {
+                SocketMessage message = context.Message;
+
+                //Check if message is an instagram link
+                if (message.Content.Contains("https://www.instagram.com/"))
+                {
+                    await context.Message.ModifyAsync(x => x.Flags = MessageFlags.SuppressEmbeds);
+
+                    List<string> urls = new();
+
+                    //Going throught the whole message to find all the instagram links
+                    int startIndex = 0;
+                    while (startIndex != -1)
+                    {
+                        //We check if there are any links left, one is expected
+                        startIndex = message.Content.IndexOf("https://www.instagram.com/", startIndex);
+
+                        if (startIndex != -1)
+                        {
+                            //We cut off anything before the start of the link and replace embed supression characters
+                            string beginningCut = message.Content[startIndex..].Replace(">", "").Replace("<", "");
+
+                            //And anything after the first space that ended the link
+                            string url = beginningCut.Split(new char[] { ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries)[0];
+
+                            urls.Add(url);
+
+                            startIndex++;
+                        }
+                    }
+
+                    for (int i = 0; i < urls.Count; i++)
+                    {
+                        Console.WriteLine($"Embed message from following link: {urls[i]}");
+                        Global.Logs.Add(new Log("LOG", $"Embed message from following link: {urls[i]}"));
+
+                        //A profile url looks like so https://www.instagram.com/[username]/ that creates 3 parts when removing the empty entry after the https and the end
+                        //Every other url has to be a post, a story, a reel and so on
+                        if (urls[i].Split('/', StringSplitOptions.RemoveEmptyEntries).Length > 3)
+                        {
+                            //In case it is a story, api calls work differently compared to a regular post
+                            if (urls[i].Contains("/stories/"))
+                            {
+                                await InstagramAPI.StoryEmbed(message.Channel, urls[i]);
+                            }
+                            else
+                            {
+                                await InstagramAPI.PostEmbed(message.Channel, urls[i]);
+                            }
+                        }
+                        else
+                        {
+                            await InstagramAPI.ProfileEmbed(message.Channel, urls[i]);
+                        }
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "ProgramFunctions.cs InstagramEmbed", ex.ToString()));
             }
         }
     }
