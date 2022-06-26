@@ -16,6 +16,8 @@ namespace Discord_Bot.Modules
         //Server information stored in a dictionary, the key is the Context.Guild.Id, the value is a complex class
         public static readonly Dictionary<ulong, Server> servers = new();
 
+        public static bool InstagramChecker { get; set; }
+
         //Returns the current formatted time for log messages
         public static string Current_Time() { return DateTime.Now.Hour + ":" + DateTime.Now.Minute + ":" + DateTime.Now.Second; }
 

@@ -19,67 +19,75 @@ namespace Discord_Bot.Modules.API
         private static IInstaApi InstaApi;
 
         //Login or load in for instagram api
-        public static async Task<bool> Startup()
+        public static async Task Startup()
         {
+            //If the arrays are not equal in size, we take the shorter one's length as the base
+            int length = Global.Config.Instagram_Username.Length > Global.Config.Instagram_Password.Length
+                ? Global.Config.Instagram_Password.Length : Global.Config.Instagram_Username.Length;
+
             try
             {
-                // create user session data and provide login details
-                var userSession = new UserSessionData
+                for (int i = 0; i < length; i++)
                 {
-                    UserName = Global.Config.Instagram_Username,
-                    Password = Global.Config.Instagram_Password
-                };
-
-                var delay = RequestDelay.FromSeconds(2, 2);
-                // create new InstaApi instance using Builder
-                InstaApi = InstaApiBuilder.CreateBuilder()
-                    .SetUser(userSession)
-                    .UseLogger(new DebugLogger(LogLevel.Exceptions)) // use logger for requests and debug messages
-                    .SetRequestDelay(delay)
-                    .Build();
-
-                //Filepath of user sessions
-                const string stateFile = "Assets\\Last_instagram_session.bin";
-
-                try
-                {
-                    //Check if file exists, if it does, load it
-                    if (File.Exists(stateFile))
+                    // create user session data and provide login details
+                    var userSession = new UserSessionData
                     {
-                        Console.WriteLine("Loading state from file");
-                        Global.Logs.Add(new Log("LOG", "Loading state from file"));
-                        using var fs = File.OpenRead(stateFile);
-                        InstaApi.LoadStateDataFromStream(fs);
-                    }
-                }
-                catch (Exception e) { Console.WriteLine(e); }
+                        UserName = Global.Config.Instagram_Username[i],
+                        Password = Global.Config.Instagram_Password[i]
+                    };
 
-                //If the loaded user is authenticated, we don't have to log in
-                if (!InstaApi.IsUserAuthenticated)
-                {
-                    // login
-                    Console.WriteLine($"Logging in as {userSession.UserName}");
-                    Global.Logs.Add(new Log("LOG", $"Logging in as {userSession.UserName}"));
-                    delay.Disable();
-                    var logInResult = await InstaApi.LoginAsync();
-                    delay.Enable();
-                    if (!logInResult.Succeeded)
+                    var delay = RequestDelay.FromSeconds(2, 2);
+                    // create new InstaApi instance using Builder
+                    InstaApi = InstaApiBuilder.CreateBuilder()
+                        .SetUser(userSession)
+                        .UseLogger(new DebugLogger(LogLevel.Exceptions)) // use logger for requests and debug messages
+                        .SetRequestDelay(delay)
+                        .Build();
+
+                    //Filepath of user sessions
+                    const string stateFile = "Assets\\Last_instagram_session.bin";
+
+                    try
                     {
-                        Console.WriteLine($"Unable to login: {logInResult.Info.Message}");
-                        Global.Logs.Add(new Log("ERROR", $"Unable to login: {logInResult.Info.Message}"));
-                        return false;
+                        //Check if file exists, if it does, load it
+                        if (File.Exists(stateFile))
+                        {
+                            Console.WriteLine("Loading state from file");
+                            Global.Logs.Add(new Log("LOG", "Loading state from file"));
+                            using var fs = File.OpenRead(stateFile);
+                            InstaApi.LoadStateDataFromStream(fs);
+                        }
                     }
+                    catch (Exception e) { Console.WriteLine(e); }
+
+                    //If the loaded user is authenticated, we don't have to log in
+                    if (!InstaApi.IsUserAuthenticated)
+                    {
+                        // login
+                        Console.WriteLine($"Logging in as {userSession.UserName}");
+                        Global.Logs.Add(new Log("LOG", $"Logging in as {userSession.UserName}"));
+                        delay.Disable();
+                        var logInResult = await InstaApi.LoginAsync();
+                        delay.Enable();
+                        if (!logInResult.Succeeded)
+                        {
+                            Console.WriteLine($"Unable to login: {logInResult.Info.Message}");
+                            Global.Logs.Add(new Log("ERROR", $"Unable to login: {logInResult.Info.Message}"));
+                            continue;
+                        }
+                    }
+
+                    //Reading current session
+                    var state = InstaApi.GetStateDataAsStream();
+
+                    //Saving Current session
+                    using var fileStream = File.Create(stateFile);
+                    state.Seek(0, SeekOrigin.Begin);
+                    state.CopyTo(fileStream);
+
+                    Global.InstagramChecker = true;
+                    return;
                 }
-
-                //Reading current session
-                var state = InstaApi.GetStateDataAsStream();
-
-                //Saving Current session
-                using var fileStream = File.Create(stateFile);
-                state.Seek(0, SeekOrigin.Begin);
-                state.CopyTo(fileStream);
-
-                return true;
             }
             catch (Exception ex)
             {
@@ -88,7 +96,9 @@ namespace Discord_Bot.Modules.API
                 Global.Logs.Add(new Log("ERROR", "InstagramAPI.cs Startup", ex.ToString()));
             }
 
-            return false;
+            Global.InstagramChecker = false;
+            Console.WriteLine("The instagram embed feature is globally turned off!");
+            Global.Logs.Add(new Log("LOG", "The instagram embed feature is globally turned off!"));
         }
 
 
