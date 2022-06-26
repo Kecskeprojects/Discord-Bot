@@ -7,6 +7,7 @@ namespace Discord_Bot.Modules.Interfaces
     {
         [Command("p")]
         [RequireContext(ContextType.Guild)]
+        [Alias(new string[] { "play" })]
         public Task Play([Remainder] string content);
 
 
@@ -22,11 +23,13 @@ namespace Discord_Bot.Modules.Interfaces
 
         [Command("queue")]
         [RequireContext(ContextType.Guild)]
+        [Alias(new string[] { "q" })]
         public Task Queue(int index);
 
 
         [Command("np")]
         [RequireContext(ContextType.Guild)]
+        [Alias(new string[] { "now playing", "nowplaying" })]
         public Task Now_Playing();
 
 
@@ -42,6 +45,7 @@ namespace Discord_Bot.Modules.Interfaces
 
         [Command("remove")]
         [RequireContext(ContextType.Guild)]
+        [Alias(new string[] { "r" })]
         public Task Remove(int position);
     }
 }

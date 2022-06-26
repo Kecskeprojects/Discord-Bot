@@ -116,6 +116,7 @@ namespace Discord_Bot.Modules.Commands
 
         //Adding reminding messages to database via dates
         [Command("remind at")]
+        [Alias(new string[] { "reminder at" })]
         public async Task RemindAt([Remainder] string message)
         {
             try
@@ -187,6 +188,7 @@ namespace Discord_Bot.Modules.Commands
 
         //Adding reminding messages to database via amounts of time from current date
         [Command("remind in")]
+        [Alias(new string[] { "reminder in" })]
         public async Task RemindIn([Remainder] string message)
         {
             try
@@ -335,6 +337,7 @@ namespace Discord_Bot.Modules.Commands
 
         //Remove a reminder from their list of reminders
         [Command("remind list")]
+        [Alias(new string[] { "reminder list" })]
         public async Task RemindList()
         {
             try
@@ -368,6 +371,7 @@ namespace Discord_Bot.Modules.Commands
 
         //Remove a reminder from the user's list of reminders
         [Command("remind remove")]
+        [Alias(new string[] { "reminder remove" })]
         public async Task RemindRemove(int index)
         {
             try

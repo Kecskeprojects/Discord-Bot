@@ -155,6 +155,7 @@ namespace Discord_Bot.Modules.Commands
 
 
         [Command("my biases")]
+        [Alias(new string[] { "mybiases", "biases", "my bias" })]
         public async Task MyBiases([Remainder] string groupName = "")
         {
             try
@@ -306,6 +307,7 @@ namespace Discord_Bot.Modules.Commands
 
         [Command("ping")]
         [RequireContext(ContextType.Guild)]
+        [Alias(new string[] { "p" })]
         public async Task PingBias([Remainder] string biasNames)
         {
             try

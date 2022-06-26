@@ -26,6 +26,7 @@ namespace Discord_Bot.Modules.Interfaces
         public Task ClearBias();
 
         [Command("my biases")]
+        [Alias(new string[] { "mybiases", "biases", "my bias" })]
         public Task MyBiases([Remainder] string groupName = "");
 
         [Command("bias list")]
@@ -33,6 +34,7 @@ namespace Discord_Bot.Modules.Interfaces
 
         [Command("ping")]
         [RequireContext(ContextType.Guild)]
+        [Alias(new string[] { "p" })]
         public Task PingBias([Remainder] string bias);
     }
 }

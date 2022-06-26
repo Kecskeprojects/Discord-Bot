@@ -18,6 +18,7 @@ namespace Discord_Bot.Modules.Commands.Audio
         //Play music on the channel the user is connected to
         [Command("p")]
         [RequireContext(ContextType.Guild)]
+        [Alias(new string[] { "play" })]
         public async Task Play([Remainder] string content)
         {
             try
@@ -94,6 +95,7 @@ namespace Discord_Bot.Modules.Commands.Audio
         //Current music request queue
         [Command("queue")]
         [RequireContext(ContextType.Guild)]
+        [Alias(new string[] { "q" })]
         public async Task Queue(int index = 1)
         {
             ulong sId = Context.Guild.Id;
@@ -148,6 +150,7 @@ namespace Discord_Bot.Modules.Commands.Audio
         //The currently playing song
         [Command("np")]
         [RequireContext(ContextType.Guild)]
+        [Alias(new string[] { "now playing", "nowplaying" })]
         public async Task Now_Playing()
         {
             ulong sId = Context.Guild.Id;
@@ -224,6 +227,7 @@ namespace Discord_Bot.Modules.Commands.Audio
         //Removes the song at the given position
         [Command("remove")]
         [RequireContext(ContextType.Guild)]
+        [Alias(new string[] { "r" })]
         public async Task Remove(int position)
         {
             ulong sId = Context.Guild.Id;
