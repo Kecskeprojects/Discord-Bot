@@ -6,6 +6,7 @@ using Discord_Bot.Modules.Database;
 using Discord_Bot.Modules.ListClasses;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Discord_Bot.Modules.Commands
@@ -433,6 +434,9 @@ namespace Discord_Bot.Modules.Commands
                 Dictionary<string, int> plays = new();
                 string searched = "";
 
+                //Download inactive users
+                await Context.Guild.DownloadUsersAsync();
+
                 //In case user doesn't give a song, we check if they are playing something
                 if (input == "")
                 {
@@ -470,8 +474,11 @@ namespace Discord_Bot.Modules.Commands
                                                 searched = $"{request.Name} by {request.Artist.Name}";
                                             }
 
-                                            //Add user to dictionary
-                                            plays.Add(temp_name, int.Parse(request.Userplaycount));
+                                            if (request.Userplaycount != "0")
+                                            {
+                                                //Add user to dictionary
+                                                plays.Add(temp_name, int.Parse(request.Userplaycount));
+                                            }
                                         }
                                         else { await ReplyAsync("Track not found!"); return; }
                                     }
@@ -483,11 +490,11 @@ namespace Discord_Bot.Modules.Commands
                     }
                     else { await ReplyAsync("You have yet to connect a username to your discord account. Use the !lf conn [username] command to do so!"); return; }
                 }
-                else if (input.Contains('-'))
+                else if (input.Contains('>'))
                 {
                     //Get artist's name and the track for search
-                    string artist_name = input.Split('-')[0].ToLower();
-                    string track_name = input.Split('-')[1].ToLower();
+                    string artist_name = input.Split('>')[0].ToLower();
+                    string track_name = input.Split('>')[1].ToLower();
 
                     foreach (var item in users)
                     {
@@ -509,8 +516,11 @@ namespace Discord_Bot.Modules.Commands
                                     searched = $"{request.Name} by {request.Artist.Name}";
                                 }
 
-                                //Add user to dictionary
-                                plays.Add(temp_name, int.Parse(request.Userplaycount));
+                                if(request.Userplaycount != "0")
+                                {
+                                    //Add user to dictionary
+                                    plays.Add(temp_name, int.Parse(request.Userplaycount));
+                                }
                             }
                             else { await ReplyAsync("Track not found!"); return; }
                         }
@@ -541,37 +551,49 @@ namespace Discord_Bot.Modules.Commands
                                     searched = request.Name;
                                 }
 
-                                //Add user to dictionary
-                                plays.Add(temp_name, int.Parse(request.Stats.Userplaycount));
+                                if(request.Stats.Userplaycount != "0")
+                                {
+                                    //Add user to dictionary
+                                    plays.Add(temp_name, int.Parse(request.Stats.Userplaycount));
+                                }
                             }
                             else { await ReplyAsync("artist not found!"); return; }
                         }
                     }
                 }
 
-                //Getting base of lastfm embed
-                EmbedBuilder builder = LastfmFunctions.BaseEmbed($"Server ranking for:\n{searched}");
-
-                string[] list = { "", "", "" }; int i = 1; int index = 0;
-                foreach (var userplays in plays)
+                if(plays.Count > 0)
                 {
-                    //One line in embed
-                    list[index] += $"`#{i}` **{userplays.Key}** with *{userplays.Value} plays*";
-                    list[index] += "\n";
+                    plays = plays.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
 
-                    //If we went through 15 results, start filling a new list page
-                    if (i % 15 == 0) index++;
+                    //Getting base of lastfm embed
+                    EmbedBuilder builder = LastfmFunctions.BaseEmbed($"Server ranking for:\n{searched}");
 
-                    i++;
+                    string[] list = { "", "", "" }; int i = 1; int index = 0;
+                    foreach (var userplays in plays)
+                    {
+                        //One line in embed
+                        list[index] += $"`#{i}` **{userplays.Key}** with *{userplays.Value} plays*";
+                        list[index] += "\n";
+
+                        //If we went through 15 results, start filling a new list page
+                        if (i % 15 == 0) index++;
+
+                        i++;
+                    }
+
+                    //Make each part of the text into separate fields, thus going around the 1024 character limit of a single field
+                    foreach (var item in list)
+                    {
+                        if (item != "") builder.AddField("\u200b", item, false);
+                    }
+
+                    await ReplyAsync("", false, builder.Build());
                 }
-
-                //Make each part of the text into separate fields, thus going around the 1024 character limit of a single field
-                foreach (var item in list)
+                else
                 {
-                    if (item != "") builder.AddField("\u200b", item, false);
+                    await ReplyAsync("No one has played this song according to last.fm!");
                 }
-
-                await ReplyAsync("", false, builder.Build());
             }
             catch (Exception ex)
             {

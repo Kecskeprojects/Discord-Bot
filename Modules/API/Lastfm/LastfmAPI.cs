@@ -36,11 +36,11 @@ namespace Discord_Bot.Modules.API.Lastfm
 
         protected static async Task<RestResponse> UserPlayRequests(string type, string username, string artist, string track = "")
         {
-            string request_string = $"?method={type}&api_key={Global.Config.Lastfm_API_Key}&artist={artist}&username={username}";
+            string request_string = $"?method={type}&api_key={Global.Config.Lastfm_API_Key}&artist={Uri.EscapeDataString(artist)}&username={Uri.EscapeDataString(username)}";
 
             if (track != "")
             {
-                request_string += $"&track={track}";
+                request_string += $"&track={Uri.EscapeDataString(track)}";
             }
 
             request_string += "&format=json";
