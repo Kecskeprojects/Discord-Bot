@@ -345,7 +345,11 @@ namespace Discord_Bot.Modules.Commands
                     }
 
                     //If only one person has the bias and it's the command sender, send unique message, otherwise delete command and send mentions
-                    if(message == "")
+                    if(users.Count == 0)
+                    {
+                        await ReplyAsync("Not even you have this bias, that's just shameful really...");
+                    }
+                    else if(message == "")
                     {
                         await ReplyAsync("Only you have that bias for now! Time to convert people.");
                     }

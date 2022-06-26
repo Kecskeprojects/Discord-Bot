@@ -257,30 +257,46 @@ namespace Discord_Bot.Modules.Commands
                         {
                             case "year":
                             case "years":
+                            case "yr":
+                            case "y":
                                 {
                                     date = date.AddYears(amount);
                                     break;
                                 }
                             case "month":
                             case "months":
+                            case "mon":
+                            case "M":
                                 {
                                     date = date.AddMonths(amount);
                                     break;
                                 }
+                            case "week":
+                            case "weeks":
+                            case "w":
+                                {
+                                    date = date.AddDays(amount * 7);
+                                    break;
+                                }
                             case "day":
                             case "days":
+                            case "d":
                                 {
                                     date = date.AddDays(amount);
                                     break;
                                 }
                             case "hour":
                             case "hours":
+                            case "hr":
+                            case "h":
                                 {
                                     date = date.AddHours(amount);
                                     break;
                                 }
                             case "minute":
                             case "minutes":
+                            case "min":
+                            case "m":
                                 {
                                     date = date.AddMinutes(amount);
                                     break;
