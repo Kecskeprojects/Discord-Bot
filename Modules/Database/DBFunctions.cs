@@ -240,6 +240,29 @@ namespace Discord_Bot.Modules.Database
         //LASTFM database commands
         //
 
+        public static List<LastFmUser> LastfmUsers()
+        {
+            var table = Read($"SELECT `userId`, `username` FROM `lastfm`;");
+
+            List<LastFmUser> lastFmUsers = new();
+
+            try
+            {
+                foreach (DataRow dr in table.Rows)
+                {
+                    lastFmUsers.Add(new LastFmUser(dr));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Global.Logs.Add(new Log("ERROR", ex.ToString()));
+                lastFmUsers = new();
+            }
+
+            return lastFmUsers;
+        }
+
         public static LastFmUser LastfmUserGet(ulong userId)
         {
             var table = Read($"SELECT `userId`, `username` FROM `lastfm` WHERE `userId` = '{userId}' LIMIT 1;");
