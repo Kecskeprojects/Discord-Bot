@@ -96,10 +96,8 @@ namespace Discord_Bot
                 TwitchAPI.Twitch(_client);
             }).Start();
 
-            if(!await InstagramAPI.Startup())
-            {
-                return;
-            }
+            //Instagram embed function
+            await InstagramAPI.Startup();
 
             await Task.Delay(-1);
         }
@@ -261,8 +259,11 @@ namespace Discord_Bot
 
             }
 
-            //Check embed independently from main thread
-            _ = ProgramFunctions.InstagramEmbed(context);
+            if (Global.InstagramChecker)
+            {
+                //Check embed independently from main thread
+                _ = ProgramFunctions.InstagramEmbed(context);
+            }
         }
     }
 }
