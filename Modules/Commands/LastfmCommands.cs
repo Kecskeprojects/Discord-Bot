@@ -6,6 +6,7 @@ using Discord_Bot.Modules.Database;
 using Discord_Bot.Modules.ListClasses;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -89,8 +90,10 @@ namespace Discord_Bot.Modules.Commands
                     {
                         int totalplays = await LastfmFunctions.TotalPlays(user.Username, period);
 
+                        string image_url = await API.SpotifyAPI.ImageSearch(response.Track[0].Artist.Name, response.Track[0].Name);
+
                         //Getting base of lastfm embed
-                        EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)}'s Top Tracks...");
+                        EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)}'s Top Tracks...", image_url);
                         builder.WithFooter("Total plays: " + totalplays);
 
                         string[] list = { "", "", "" }; int i = 1; int index = 0;
@@ -154,10 +157,11 @@ namespace Discord_Bot.Modules.Commands
                     {
                         int totalplays = await LastfmFunctions.TotalPlays(user.Username, period);
 
+                        string image_url = await API.SpotifyAPI.ImageSearch(response.Album[0].Artist.Name, response.Album[0].Name);
+
                         //Getting base of lastfm embed
-                        EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)}'s Top Albums...");
+                        EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)}'s Top Albums...", image_url);
                         builder.WithFooter("Total plays: " + totalplays);
-                        builder.WithThumbnailUrl(response.Album[0].Image[1].Text);
 
                         string[] list = { "", "", "" }; int i = 1; int index = 0;
                         foreach (TopAlbumClass.Album album in response.Album)
@@ -221,8 +225,10 @@ namespace Discord_Bot.Modules.Commands
                     {
                         int totalplays = await LastfmFunctions.TotalPlays(user.Username, period);
 
+                        string image_url = await API.SpotifyAPI.ImageSearch(response.Artist[0].Name);
+
                         //Getting base of lastfm embed
-                        EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)}'s Top Artists...");
+                        EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)}'s Top Artists...", image_url);
                         builder.WithFooter("Total plays: " + totalplays);
 
                         string[] list = { "", "", "" }; int i = 1; int index = 0;
@@ -276,8 +282,7 @@ namespace Discord_Bot.Modules.Commands
                         if (nowPlaying.Artist != null)
                         {
                             //Getting base of lastfm embed
-                            EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)} is currently listening to...");
-                            builder.WithThumbnailUrl(nowPlaying.Image[1].Text);
+                            EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)} is currently listening to...", nowPlaying.Image[1].Text);
 
                             builder.WithTitle(nowPlaying.Name);
                             builder.WithUrl(nowPlaying.Url);
@@ -315,8 +320,10 @@ namespace Discord_Bot.Modules.Commands
 
                     if (response != null)
                     {
+                        string image_url = await API.SpotifyAPI.ImageSearch(response.Track[0].Artist.Text, response.Track[0].Name);
+
                         //Getting base of lastfm embed
-                        EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)} recently listened to...");
+                        EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)} recently listened to...", image_url);
 
                         string[] list = { "", "", "" }; int i = 1; int index = 0;
                         foreach (RecentClass.Track track in response.Track)
@@ -380,9 +387,10 @@ namespace Discord_Bot.Modules.Commands
                                 playcount += int.Parse(track.PlayCount);
                             }
 
+                            string image_url = await API.SpotifyAPI.ImageSearch(tracks[0].Artist.Name, tracks[0].Name);
+
                             //Getting base of lastfm embed
-                            EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)}'s stats for {albums[0].Artist.Name}");
-                            builder.WithThumbnailUrl(albums[0].Image[1].Text);
+                            EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)}'s stats for {albums[0].Artist.Name}", image_url);
 
                             builder.WithDescription($"You have listened to this artist **{playcount}** times.\nYou listened to **{albums.Count}** of their albums and **{tracks.Count}** of their tracks.");
 
@@ -433,6 +441,7 @@ namespace Discord_Bot.Modules.Commands
                 var users = DBFunctions.LastfmUsers();
                 Dictionary<string, int> plays = new();
                 string searched = "";
+                string image_url = "";
 
                 //Download inactive users
                 await Context.Guild.DownloadUsersAsync();
@@ -453,6 +462,8 @@ namespace Discord_Bot.Modules.Commands
                                 //Get artist's name and the track for search
                                 string artist_name = nowPlaying.Artist.Text;
                                 string track_name = nowPlaying.Name;
+
+                                image_url = await API.SpotifyAPI.ImageSearch(artist_name, track_name);
 
                                 foreach (var item in users)
                                 {
@@ -496,6 +507,8 @@ namespace Discord_Bot.Modules.Commands
                     string artist_name = input.Split('>')[0].ToLower();
                     string track_name = input.Split('>')[1].ToLower();
 
+                    image_url = await API.SpotifyAPI.ImageSearch(artist_name, track_name);
+
                     foreach (var item in users)
                     {
                         //Check if user is in given server
@@ -530,6 +543,8 @@ namespace Discord_Bot.Modules.Commands
                 {
                     //Get artist's name for search
                     string artist_name = input.ToLower();
+
+                    image_url = await API.SpotifyAPI.ImageSearch(artist_name);
 
                     foreach (var item in users)
                     {
@@ -569,26 +584,48 @@ namespace Discord_Bot.Modules.Commands
                     //Getting base of lastfm embed
                     EmbedBuilder builder = LastfmFunctions.BaseEmbed($"Server ranking for:\n{searched}");
 
-                    string[] list = { "", "", "" }; int i = 1; int index = 0;
-                    foreach (var userplays in plays)
+                    if (image_url != "")
                     {
-                        //One line in embed
-                        list[index] += $"`#{i}` **{userplays.Key}** with *{userplays.Value} plays*";
-                        list[index] += "\n";
+                        //Download image and get back it's filepath
+                        string originalImage = await PictureHandler.DownloadImageAsync(Directory.GetCurrentDirectory(), new Random().Next(0, int.MaxValue).ToString(), new Uri(image_url));
 
-                        //If we went through 15 results, start filling a new list page
-                        if (i % 15 == 0) index++;
+                        //Edit the picture to the list format
+                        string modifiedImage = PictureHandler.EditPicture(originalImage, plays, searched);
 
-                        i++;
+                        //Add it to the embed
+                        builder.WithImageUrl($"attachment://{modifiedImage}");
+
+                        //Must send it as a file upload
+                        await Context.Channel.SendFileAsync(modifiedImage, "", embed: builder.Build());
+
+                        //Delete the remnants of the embed building
+                        File.Delete(originalImage);
+                        File.Delete(modifiedImage);
+                    }
+                    else
+                    {
+                        string[] list = { "", "", "" }; int i = 1; int index = 0;
+                        foreach (var userplays in plays)
+                        {
+                            //One line in embed
+                            list[index] += $"`#{i}` **{userplays.Key}** with *{userplays.Value} plays*";
+                            list[index] += "\n";
+
+                            //If we went through 15 results, start filling a new list page
+                            if (i % 15 == 0) index++;
+
+                            i++;
+                        }
+
+                        //Make each part of the text into separate fields, thus going around the 1024 character limit of a single field
+                        foreach (var item in list)
+                        {
+                            if (item != "") builder.AddField("\u200b", item, false);
+                        }
+
+                        await ReplyAsync("", false, builder.Build());
                     }
 
-                    //Make each part of the text into separate fields, thus going around the 1024 character limit of a single field
-                    foreach (var item in list)
-                    {
-                        if (item != "") builder.AddField("\u200b", item, false);
-                    }
-
-                    await ReplyAsync("", false, builder.Build());
                 }
                 else
                 {

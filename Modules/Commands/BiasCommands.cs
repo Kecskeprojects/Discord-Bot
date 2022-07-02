@@ -307,7 +307,6 @@ namespace Discord_Bot.Modules.Commands
 
         [Command("ping")]
         [RequireContext(ContextType.Guild)]
-        [Alias(new string[] { "p" })]
         public async Task PingBias([Remainder] string biasNames)
         {
             try

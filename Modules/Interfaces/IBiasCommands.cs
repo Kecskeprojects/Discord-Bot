@@ -34,7 +34,6 @@ namespace Discord_Bot.Modules.Interfaces
 
         [Command("ping")]
         [RequireContext(ContextType.Guild)]
-        [Alias(new string[] { "p" })]
         public Task PingBias([Remainder] string bias);
     }
 }

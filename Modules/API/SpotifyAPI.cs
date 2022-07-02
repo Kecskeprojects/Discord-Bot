@@ -104,5 +104,39 @@ namespace Discord_Bot.Modules.API
             }
             return -1;
         }
+
+        //Lastfm complimentary function
+        public static async Task<string> ImageSearch(string artist, string song = "")
+        {
+            try
+            {
+                
+                var config = SpotifyClientConfig.CreateDefault().WithAuthenticator(new ClientCredentialsAuthenticator(Global.Config.Spotify_Client_Id, Global.Config.Spotify_Client_Secret));
+                var spotify = new SpotifyClient(config);
+
+                if (song == "")
+                {
+                    SearchRequest request = new(SearchRequest.Types.Artist, artist);
+                    var result = await spotify.Search.Item(request);
+
+                    return result.Artists.Items[0].Images[0].Url;
+                }
+                else
+                {
+                    SearchRequest request = new(SearchRequest.Types.Track, artist + " " + song);
+                    var result = await spotify.Search.Item(request);
+
+                    return result.Tracks.Items[0].Album.Images[0].Url;
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "SpotifyAPI.cs ImageSearch", ex.ToString()));
+            }
+            return "";
+        }
     }
 }
