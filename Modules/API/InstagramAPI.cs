@@ -472,9 +472,13 @@ namespace Discord_Bot.Modules.API
                                 if(i == 0)
                                 {
                                     Embeds.Add(main.WithUrl(url).WithImageUrl(content.Images[i].Uri).Build());
-                                }
 
-                                Embeds.Add(new EmbedBuilder().WithUrl(url).WithImageUrl(content.Images[i].Uri).Build());
+                                    if (!content.IsMultiPost) break;
+                                }
+                                else
+                                {
+                                    Embeds.Add(new EmbedBuilder().WithUrl(url).WithImageUrl(content.Images[i].Uri).Build());
+                                }
                             }
                             break;
                         }
@@ -486,9 +490,13 @@ namespace Discord_Bot.Modules.API
                                 if (i == 0)
                                 {
                                     Embeds.Add(main.WithUrl(url).WithImageUrl(content.Carousel[i].Images[0].Uri).Build());
-                                }
 
-                                Embeds.Add(new EmbedBuilder().WithUrl(url).WithImageUrl(content.Carousel[i].Images[0].Uri).Build());
+                                    if (!content.IsMultiPost) break;
+                                }
+                                else
+                                {
+                                    Embeds.Add(new EmbedBuilder().WithUrl(url).WithImageUrl(content.Carousel[i].Images[0].Uri).Build());
+                                }
                             }
                             break;
                         }
