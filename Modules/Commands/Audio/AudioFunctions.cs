@@ -26,7 +26,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
                 //In case of a spotify link, do a spotify API query before the youtube API query
                 int result;
-                if (input.Contains("spotify")) result = API.SpotifyAPI.SpotifySearch(context, input);
+                if (input.Contains("spotify")) result = Spotify_API.SpotifySearch(context, input);
                 else result = YoutubeAPI.Searching(context, input);
 
                 //If search results come back empty, return

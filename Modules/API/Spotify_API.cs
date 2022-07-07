@@ -7,7 +7,7 @@ using Discord_Bot.Modules.ListClasses;
 
 namespace Discord_Bot.Modules.API
 {
-    class SpotifyAPI
+    class Spotify_API
     {
         //Main function starting the query and catching errors
         public static int SpotifySearch(SocketCommandContext context, string query)
@@ -106,29 +106,109 @@ namespace Discord_Bot.Modules.API
         }
 
         //Lastfm complimentary function
-        public static async Task<string> ImageSearch(string artist, string song = "")
+        public static async Task<string> ImageSearch(string artist, string song = "", string[] tags = null)
         {
             try
             {
-                
                 var config = SpotifyClientConfig.CreateDefault().WithAuthenticator(new ClientCredentialsAuthenticator(Global.Config.Spotify_Client_Id, Global.Config.Spotify_Client_Secret));
                 var spotify = new SpotifyClient(config);
+
+                string spotifyArtist = "", spotifyImage = "";
+
+                Console.WriteLine("Who knows command image search:");
+                Global.Logs.Add(new Log("LOG", "Who knows command image search:"));
 
                 if (song == "")
                 {
                     SearchRequest request = new(SearchRequest.Types.Artist, artist);
                     var result = await spotify.Search.Item(request);
 
-                    return result.Artists.Items[0].Images[0].Url;
+                    foreach (var item in result.Artists.Items)
+                    {
+                        var artist_genres = item.Genres;
+                        var union = artist_genres.Select(x => x.ToLower()).Intersect(tags.Select(x => x.ToLower()));
+                        if (union.Any() && item.Name.ToLower() == artist.ToLower())
+                        {
+                            spotifyArtist = item.Name;
+                            spotifyImage = item.Images[0].Url;
+                            break;
+                        }
+                    }
+
+                    if(spotifyArtist == "")
+                    {
+                        Console.WriteLine("Genre and name check failed, finding first artist with just the same name");
+                        Global.Logs.Add(new Log("LOG", "Genre and name check failed, finding first artist with just the same name"));
+
+                        foreach (var item in result.Artists.Items)
+                        {
+                            if (item.Name.ToLower() == artist.ToLower())
+                            {
+                                spotifyArtist = item.Name;
+                                spotifyImage = item.Images[0].Url;
+                                break;
+                            }
+                        }
+
+                        if(spotifyArtist == "")
+                        {
+                            Console.WriteLine("Name only search also failed, returning first item on list");
+                            Global.Logs.Add(new Log("LOG", "Name only search also failed, returning first item on list"));
+
+                            spotifyArtist = result.Artists.Items[0].Name;
+                            spotifyImage = result.Artists.Items[0].Images[0].Url;
+                        }
+                    }
                 }
                 else
                 {
-                    SearchRequest request = new(SearchRequest.Types.Track, artist + " " + song);
+                    SearchRequest request = new(SearchRequest.Types.Track, song + " " + artist);
                     var result = await spotify.Search.Item(request);
 
-                    return result.Tracks.Items[0].Album.Images[0].Url;
+                    foreach (var item in result.Tracks.Items)
+                    {
+                        var temp_artist = await spotify.Artists.Get(item.Album.Artists[0].Id);
+
+                        var artist_genres = temp_artist.Genres;
+                        var union = artist_genres.Select(x => x.ToLower()).Intersect(tags.Select(x => x.ToLower()));
+                        if (union.Any() && item.Artists[0].Name.ToLower() == artist.ToLower())
+                        {
+                            spotifyArtist = item.Artists[0].Name;
+                            spotifyImage = item.Album.Images[0].Url;
+                            break;
+                        }
+                    }
+
+                    if (spotifyArtist == "")
+                    {
+                        Console.WriteLine("Genre and name check failed, finding first artist with just the same name");
+                        Global.Logs.Add(new Log("LOG", "Genre and name check failed, finding first artist with just the same name"));
+
+                        foreach (var item in result.Tracks.Items)
+                        {
+                            if (item.Artists[0].Name.ToLower() == artist.ToLower())
+                            {
+                                spotifyArtist = item.Artists[0].Name;
+                                spotifyImage = item.Album.Images[0].Url;
+                                break;
+                            }
+                        }
+
+                        if (spotifyArtist == "")
+                        {
+                            Console.WriteLine("Name only search also failed, returning first item on list");
+                            Global.Logs.Add(new Log("LOG", "Name only search also failed, returning first item on list"));
+
+                            spotifyArtist = result.Tracks.Items[0].Name;
+                            spotifyImage = result.Tracks.Items[0].Album.Images[0].Url;
+                        }
+                    }
                 }
-                
+
+                Console.WriteLine($"Artist found by Last.fm: {artist}\nArtist found by Spotify: {spotifyArtist}\nWith image link: {spotifyImage}");
+                Global.Logs.Add(new Log("LOG", $"Artist found by Last.fm: {artist}\nArtist found by Spotify: {spotifyArtist}\nWith image link: {spotifyImage}"));
+
+                return spotifyImage;
             }
             catch (Exception ex)
             {

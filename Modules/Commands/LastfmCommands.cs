@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord_Bot.Modules.API;
 using Discord_Bot.Modules.API.Lastfm;
 using Discord_Bot.Modules.API.Lastfm.LastfmClasses;
 using Discord_Bot.Modules.Database;
@@ -90,7 +91,7 @@ namespace Discord_Bot.Modules.Commands
                     {
                         int totalplays = await LastfmFunctions.TotalPlays(user.Username, period);
 
-                        string image_url = await API.SpotifyAPI.ImageSearch(response.Track[0].Artist.Name, response.Track[0].Name);
+                        string image_url = await Spotify_API.ImageSearch(response.Track[0].Artist.Name, response.Track[0].Name);
 
                         //Getting base of lastfm embed
                         EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)}'s Top Tracks...", image_url);
@@ -157,7 +158,7 @@ namespace Discord_Bot.Modules.Commands
                     {
                         int totalplays = await LastfmFunctions.TotalPlays(user.Username, period);
 
-                        string image_url = await API.SpotifyAPI.ImageSearch(response.Album[0].Artist.Name, response.Album[0].Name);
+                        string image_url = await Spotify_API.ImageSearch(response.Album[0].Artist.Name, response.Album[0].Name);
 
                         //Getting base of lastfm embed
                         EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)}'s Top Albums...", image_url);
@@ -225,7 +226,7 @@ namespace Discord_Bot.Modules.Commands
                     {
                         int totalplays = await LastfmFunctions.TotalPlays(user.Username, period);
 
-                        string image_url = await API.SpotifyAPI.ImageSearch(response.Artist[0].Name);
+                        string image_url = await Spotify_API.ImageSearch(response.Artist[0].Name);
 
                         //Getting base of lastfm embed
                         EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)}'s Top Artists...", image_url);
@@ -320,7 +321,7 @@ namespace Discord_Bot.Modules.Commands
 
                     if (response != null)
                     {
-                        string image_url = await API.SpotifyAPI.ImageSearch(response.Track[0].Artist.Text, response.Track[0].Name);
+                        string image_url = await Spotify_API.ImageSearch(response.Track[0].Artist.Text, response.Track[0].Name);
 
                         //Getting base of lastfm embed
                         EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)} recently listened to...", image_url);
@@ -387,7 +388,7 @@ namespace Discord_Bot.Modules.Commands
                                 playcount += int.Parse(track.PlayCount);
                             }
 
-                            string image_url = await API.SpotifyAPI.ImageSearch(tracks[0].Artist.Name, tracks[0].Name);
+                            string image_url = await Spotify_API.ImageSearch(tracks[0].Artist.Name, tracks[0].Name);
 
                             //Getting base of lastfm embed
                             EmbedBuilder builder = LastfmFunctions.BaseEmbed($"{LastfmFunctions.GetNickName(Context)}'s stats for {albums[0].Artist.Name}", image_url);
@@ -463,8 +464,6 @@ namespace Discord_Bot.Modules.Commands
                                 string artist_name = nowPlaying.Artist.Text;
                                 string track_name = nowPlaying.Name;
 
-                                image_url = await API.SpotifyAPI.ImageSearch(artist_name, track_name);
-
                                 foreach (var item in users)
                                 {
                                     //Check if user is in given server
@@ -483,6 +482,8 @@ namespace Discord_Bot.Modules.Commands
                                             {
                                                 //Save the names for use in embed
                                                 searched = $"{request.Name} by {request.Artist.Name}";
+
+                                                image_url = await Spotify_API.ImageSearch(artist_name, track_name, request.Toptags.Tag.Select(x => x.Name).ToArray());
                                             }
 
                                             if (request.Userplaycount != "0")
@@ -507,8 +508,6 @@ namespace Discord_Bot.Modules.Commands
                     string artist_name = input.Split('>')[0].ToLower();
                     string track_name = input.Split('>')[1].ToLower();
 
-                    image_url = await API.SpotifyAPI.ImageSearch(artist_name, track_name);
-
                     foreach (var item in users)
                     {
                         //Check if user is in given server
@@ -527,6 +526,8 @@ namespace Discord_Bot.Modules.Commands
                                 {
                                     //Save the names for use in embed
                                     searched = $"{request.Name} by {request.Artist.Name}";
+
+                                    image_url = await Spotify_API.ImageSearch(artist_name, track_name, request.Toptags.Tag.Select(x => x.Name).ToArray());
                                 }
 
                                 if(request.Userplaycount != "0")
@@ -543,8 +544,6 @@ namespace Discord_Bot.Modules.Commands
                 {
                     //Get artist's name for search
                     string artist_name = input.ToLower();
-
-                    image_url = await API.SpotifyAPI.ImageSearch(artist_name);
 
                     foreach (var item in users)
                     {
@@ -564,6 +563,8 @@ namespace Discord_Bot.Modules.Commands
                                 {
                                     //Save the name for use in embed
                                     searched = request.Name;
+
+                                    image_url = await Spotify_API.ImageSearch(artist_name, tags: request.Tags.Tag.Select(x => x.Name).ToArray());
                                 }
 
                                 if(request.Stats.Userplaycount != "0")
@@ -625,7 +626,6 @@ namespace Discord_Bot.Modules.Commands
 
                         await ReplyAsync("", false, builder.Build());
                     }
-
                 }
                 else
                 {
