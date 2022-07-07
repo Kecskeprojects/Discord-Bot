@@ -24,6 +24,26 @@ namespace Discord_Bot.Modules.API.Lastfm
                 using Image mainImage = Image.Load(image_url);
                 using Image AlbumImage = Image.Load(image_url);
 
+                //If the Cover image is too wide or high, we crop it depending on which of the two it is
+                if (mainImage.Height / mainImage.Width > 1.2 || mainImage.Height / mainImage.Width < 0.8)
+                {
+                    int difference;
+                    if (mainImage.Width > mainImage.Height)
+                    {
+                        difference = mainImage.Width - mainImage.Height;
+
+                        mainImage.Mutate(x => x.Crop(new Rectangle(difference / 2, 0, mainImage.Width - difference, mainImage.Height)));
+                        AlbumImage.Mutate(x => x.Crop(new Rectangle(difference / 2, 0, AlbumImage.Width - difference, AlbumImage.Height)));
+                    }
+                    else
+                    {
+                        difference = mainImage.Height - mainImage.Width;
+
+                        mainImage.Mutate(x => x.Crop(new Rectangle(0, difference / 2, mainImage.Width, mainImage.Height - difference)));
+                        AlbumImage.Mutate(x => x.Crop(new Rectangle(0, difference / 2, AlbumImage.Width, AlbumImage.Height - difference)));
+                    }
+                    
+                }
 
                 //Get the dominant and contrast colors for the album image
                 Tuple<Color, Color> Colors = GetContrastAndDominantColors(Image.Load<Rgba32>(image_url));
