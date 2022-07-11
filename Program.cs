@@ -88,7 +88,7 @@ namespace Discord_Bot
             await RegisterCommandsAsync();
 
             await _client.LoginAsync(TokenType.Bot, Global.Config.Token);
-
+            
             await _client.StartAsync();
 
             new Thread(() =>

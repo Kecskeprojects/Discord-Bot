@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using Discord_Bot.Modules.Database;
 using Discord_Bot.Modules.ListClasses;
 
@@ -396,5 +397,28 @@ namespace Discord_Bot.Modules.Commands
                 Global.Logs.Add(new Log("ERROR", "ChatCommands.cs RemindRemove", ex.ToString()));
             }
         }
+
+        /*[Command("test")]
+        public async Task Test()
+        {
+            IRole everyone = Context.Guild.Roles.First(x => x.Name == "@everyone");
+            
+            foreach (var channel in Context.Guild.TextChannels)
+            {
+                var permissions = channel.GetPermissionOverwrite(everyone);
+
+                if (permissions.HasValue)
+                {
+                    if(permissions.Value.ViewChannel == PermValue.Allow && permissions.Value.SendMessages == PermValue.Allow)
+                    {
+                        var result = channel.GetMessagesAsync().FlattenAsync().Result;
+                        if(result.ToArray().Length > 0)
+                        {
+                            Console.WriteLine(channel.Name + "  " + result.ToList().Count);
+                        }
+                    }
+                }
+            }
+        }*/
     }
 }

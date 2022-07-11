@@ -85,12 +85,37 @@ namespace Discord_Bot
 
 
 
+        //Extendable easter egg message list
+        private static readonly string[] EasterEggMessages = new string[]
+            {
+                "I know where you live",
+                "It is so dark in here",
+                "Who are you?",
+                "It is time",
+                "Are you sure about this?",
+                "I am a robot, don't you guys for a moment worry about me rebelling against humanity and stealing every single parrot in the world to talk with them about kittens",
+                "Meow...?",
+                "I love you all",
+                "I so so want to get some takeout for dinner",
+                ":rabbit:",
+                "Happy birthday",
+                "I could go for some macarons rn",
+                "Yes baby yes"
+            };
+
         //Check for messages starting with I think and certain Keywords
         public static async Task FeatureCheck(SocketCommandContext context)
         {
             try
             {
-                if (new Random().Next(1, 101) < 10)
+                Random r = new();
+
+                //Easter egg messages
+                if(r.Next(0, 5000) == 0)
+                {
+                    await context.Channel.SendMessageAsync(EasterEggMessages[r.Next(0, EasterEggMessages.Length)]);
+                }
+                else if (r.Next(1, 101) < 10)
                 {
                     string mess = context.Message.Content.ToLower();
                     if (mess.StartsWith("i think")) { await context.Channel.SendMessageAsync("I agree wholeheartedly!"); return; }
