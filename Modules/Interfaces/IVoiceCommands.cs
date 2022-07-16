@@ -13,11 +13,13 @@ namespace Discord_Bot.Modules.Interfaces
 
         [Command("join")]
         [RequireContext(ContextType.Guild)]
+        [Alias(new string[] { "connect", "conn" })]
         public Task Join();
 
 
         [Command("leave")]
         [RequireContext(ContextType.Guild)]
+        [Alias(new string[] { "disconnect", "disconn", "disc", "dc" })]
         public Task Leave();
 
 

@@ -60,6 +60,7 @@ namespace Discord_Bot.Modules.Commands.Audio
 
         //Joins the bot to the user's voice channel
         [Command("join")]
+        [Alias(new string[] { "connect", "conn" })]
         [RequireContext(ContextType.Guild)]
         public async Task Join()
         {
@@ -75,6 +76,7 @@ namespace Discord_Bot.Modules.Commands.Audio
         //Leaves the current voice channel
         [Command("leave")]
         [RequireContext(ContextType.Guild)]
+        [Alias(new string[] { "disconnect", "disconn", "disc", "dc" })]
         public async Task Leave()
         {
             ulong sId = Context.Guild.Id;
