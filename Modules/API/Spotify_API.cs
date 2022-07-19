@@ -115,31 +115,37 @@ namespace Discord_Bot.Modules.API
 
                 string spotifyArtist = "", spotifyImage = "";
 
-                Console.WriteLine("Who knows command image search:");
-                Global.Logs.Add(new Log("LOG", "Who knows command image search:"));
+                Console.WriteLine("Spotify image search:");
+                Global.Logs.Add(new Log("LOG", "Spotify image search:"));
 
                 if (song == "")
                 {
                     SearchRequest request = new(SearchRequest.Types.Artist, artist);
                     var result = await spotify.Search.Item(request);
 
-                    foreach (var item in result.Artists.Items)
+                    if (tags != null)
                     {
-                        var artist_genres = item.Genres;
-                        var union = artist_genres.Select(x => x.ToLower()).Intersect(tags.Select(x => x.ToLower()));
-                        if (union.Any() && item.Name.ToLower() == artist.ToLower())
+                        foreach (var item in result.Artists.Items)
                         {
-                            spotifyArtist = item.Name;
-                            spotifyImage = item.Images[0].Url;
-                            break;
+                            var artist_genres = item.Genres;
+                            var union = artist_genres.Select(x => x.ToLower()).Intersect(tags.Select(x => x.ToLower()));
+                            if (union.Any() && item.Name.ToLower() == artist.ToLower())
+                            {
+                                spotifyArtist = item.Name;
+                                spotifyImage = item.Images[0].Url;
+                                break;
+                            }
+                        }
+
+                        if (spotifyArtist == "")
+                        {
+                            Console.WriteLine("Genre and name check failed, finding first artist with just the same name");
+                            Global.Logs.Add(new Log("LOG", "Genre and name check failed, finding first artist with just the same name"));
                         }
                     }
 
                     if(spotifyArtist == "")
                     {
-                        Console.WriteLine("Genre and name check failed, finding first artist with just the same name");
-                        Global.Logs.Add(new Log("LOG", "Genre and name check failed, finding first artist with just the same name"));
-
                         foreach (var item in result.Artists.Items)
                         {
                             if (item.Name.ToLower() == artist.ToLower())
@@ -165,25 +171,31 @@ namespace Discord_Bot.Modules.API
                     SearchRequest request = new(SearchRequest.Types.Track, song + " " + artist);
                     var result = await spotify.Search.Item(request);
 
-                    foreach (var item in result.Tracks.Items)
+                    if(tags != null)
                     {
-                        var temp_artist = await spotify.Artists.Get(item.Album.Artists[0].Id);
-
-                        var artist_genres = temp_artist.Genres;
-                        var union = artist_genres.Select(x => x.ToLower()).Intersect(tags.Select(x => x.ToLower()));
-                        if (union.Any() && item.Artists[0].Name.ToLower() == artist.ToLower())
+                        foreach (var item in result.Tracks.Items)
                         {
-                            spotifyArtist = item.Artists[0].Name;
-                            spotifyImage = item.Album.Images[0].Url;
-                            break;
+                            var temp_artist = await spotify.Artists.Get(item.Album.Artists[0].Id);
+
+                            var artist_genres = temp_artist.Genres;
+                            var union = artist_genres.Select(x => x.ToLower()).Intersect(tags.Select(x => x.ToLower()));
+                            if (union.Any() && item.Artists[0].Name.ToLower() == artist.ToLower())
+                            {
+                                spotifyArtist = item.Artists[0].Name;
+                                spotifyImage = item.Album.Images[0].Url;
+                                break;
+                            }
+                        }
+
+                        if (spotifyArtist == "")
+                        {
+                            Console.WriteLine("Genre and name check failed, finding first artist with just the same name");
+                            Global.Logs.Add(new Log("LOG", "Genre and name check failed, finding first artist with just the same name"));
                         }
                     }
 
                     if (spotifyArtist == "")
                     {
-                        Console.WriteLine("Genre and name check failed, finding first artist with just the same name");
-                        Global.Logs.Add(new Log("LOG", "Genre and name check failed, finding first artist with just the same name"));
-
                         foreach (var item in result.Tracks.Items)
                         {
                             if (item.Artists[0].Name.ToLower() == artist.ToLower())

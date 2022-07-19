@@ -373,7 +373,7 @@ namespace Discord_Bot.Modules.Commands
                 if (user != null)
                 {
                     var response = await LastfmAPI.Artist(user.Username, artist);
-
+                    
                     if(response != null)
                     {
                         if(response.Item1.Count != 0)
