@@ -115,6 +115,44 @@ namespace Discord_Bot.Modules.Commands
             }
         }
 
+        [Command("coin flip")]
+        [Alias(new string[] { "flip a coin", "cf", "fc", "cofl", "flco" })]
+        public async Task CoinFlip([Remainder] string choice = "")
+        {
+            try
+            {
+                Random r = new();
+                int chance = r.Next(1, 101);
+
+                string[] choices = new string[] { "Heads", "Tails" };
+
+                //If choice options are given, we switch out the original strings
+                if (choice != "" && choice.Contains(" or "))
+                {
+                    choices = choice.Split(" or ");
+                }
+
+                if (chance < 50)
+                {
+                    await ReplyAsync("The coin landed on: " + choices[0].Trim());
+                }
+                else if (chance > 51)
+                {
+                    await ReplyAsync("The coin landed on: " + choices[1].Trim());
+                }
+                else
+                {
+                    await ReplyAsync("The coin landed on it's edge");
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Global.Logs.Add(new Log("DEV", ex.Message));
+                Global.Logs.Add(new Log("ERROR", "ChatCommands.cs CoinFlip", ex.ToString()));
+            }
+        }
+
         //Adding reminding messages to database via dates
         [Command("remind at")]
         [Alias(new string[] { "reminder at" })]

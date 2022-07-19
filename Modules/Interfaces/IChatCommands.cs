@@ -15,6 +15,10 @@ namespace Discord_Bot.Modules.Interfaces
         [Command("help")]
         public Task Help();
 
+        [Command("coin flip")]
+        [Alias(new string[] { "flip a coin", "cf", "fc", "cofl", "flco" })]
+        public Task CoinFlip([Remainder] string message);
+
         [Command("remind at")]
         [Alias(new string[] { "reminder at" })]
         public Task RemindAt([Remainder] string message);
